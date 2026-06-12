@@ -1,0 +1,935 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans);color:var(--color-text-primary);background:transparent;}
+.wrap{padding:12px 0;}
+.top-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.title{font-size:18px;font-weight:500;}
+.stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 14px;font-size:13px;color:var(--color-text-secondary);}
+.stat b{font-size:20px;font-weight:500;color:var(--color-text-primary);display:block;}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.fbtn{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:5px 12px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);}
+.fbtn.on{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info);}
+.qcard{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:16px;margin-bottom:12px;}
+.qcard.wrong{border-left:3px solid var(--color-border-danger);}
+.qcard.right{border-left:3px solid var(--color-border-success);}
+.qcard.unanswered{border-left:3px solid var(--color-border-tertiary);}
+.q-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.q-num{background:var(--color-background-info);color:var(--color-text-info);border-radius:var(--border-radius-md);padding:2px 8px;font-size:12px;font-weight:500;white-space:nowrap;margin-top:2px;}
+.q-num.d-cmd{background:var(--color-background-success);color:var(--color-text-success);}
+.q-num.d-vi{background:#faeeda;color:#854f0b;}
+.q-num.d-regex{background:var(--color-background-warning);color:var(--color-text-warning);}
+.q-num.d-perm{background:#faece7;color:#993c1d;}
+.q-num.d-proc{background:#fbeaf0;color:#993556;}
+.q-num.d-user{background:#eeedfe;color:#3c3489;}
+.q-num.d-redir{background:#e1f5ee;color:#0f6e56;}
+.q-tag{font-size:11px;color:var(--color-text-tertiary);margin-left:auto;white-space:nowrap;}
+.q-text{font-size:14px;line-height:1.7;margin-bottom:12px;color:var(--color-text-primary);}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);cursor:pointer;font-size:13px;transition:background .15s;}
+.opt:hover{background:var(--color-background-secondary);}
+.opt.selected{border-color:var(--color-border-info);background:var(--color-background-info);}
+.opt.correct{border-color:var(--color-border-success);background:var(--color-background-success);}
+.opt.wrong-sel{border-color:var(--color-border-danger);background:var(--color-background-danger);}
+.opt-mark{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--color-border-secondary);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.check-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:6px 14px;font-size:12px;cursor:pointer;margin-top:10px;color:var(--color-text-secondary);}
+.check-btn:hover{background:var(--color-background-secondary);}
+.explain{margin-top:12px;padding:12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:13px;line-height:1.8;color:var(--color-text-secondary);}
+.explain .point{font-weight:500;color:var(--color-text-primary);margin-bottom:4px;}
+.explain code{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;padding:1px 5px;font-family:var(--font-mono);font-size:12px;color:var(--color-text-info);}
+.explain .tip{color:var(--color-text-success);margin-top:6px;font-size:12px;}
+.explain .warn{color:var(--color-text-warning);margin-top:6px;font-size:12px;}
+.inp-ans{width:100%;padding:8px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);font-size:13px;font-family:var(--font-mono);margin-bottom:8px;background:var(--color-background-primary);color:var(--color-text-primary);}
+.result-badge{display:inline-block;padding:2px 8px;border-radius:var(--border-radius-md);font-size:12px;margin-left:8px;}
+.rb-ok{background:var(--color-background-success);color:var(--color-text-success);}
+.rb-ng{background:var(--color-background-danger);color:var(--color-text-danger);}
+.progress-bar{height:6px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden;margin-bottom:16px;}
+.progress-fill{height:100%;background:var(--color-text-info);border-radius:3px;transition:width .3s;}
+.reset-btn{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:5px 12px;font-size:12px;cursor:pointer;color:var(--color-text-secondary);margin-left:auto;}
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">LPIC-1 101 試験対策 全60問 インタラクティブ学習ツール</h2>
+<div class="top-bar">
+  <span class="title">LPIC-1 101 — 全60問 完全解説</span>
+  <button class="reset-btn" onclick="resetAll()">最初からやり直す</button>
+</div>
+
+<div class="stats-row" id="stats-row">
+  <div class="stat"><b id="s-total">60</b>全問題</div>
+  <div class="stat"><b id="s-done" style="color:var(--color-text-info)">0</b>回答済み</div>
+  <div class="stat"><b id="s-ok" style="color:var(--color-text-success)">0</b>正解</div>
+  <div class="stat"><b id="s-ng" style="color:var(--color-text-danger)">0</b>不正解</div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+<div class="filter-bar">
+  <span style="font-size:12px;color:var(--color-text-secondary);padding:5px 0;">カテゴリ：</span>
+  <button class="fbtn on" data-cat="all" onclick="filterCat('all',this)">すべて</button>
+  <button class="fbtn" data-cat="cmd" onclick="filterCat('cmd',this)">コマンド基礎</button>
+  <button class="fbtn" data-cat="vi" onclick="filterCat('vi',this)">viエディタ</button>
+  <button class="fbtn" data-cat="regex" onclick="filterCat('regex',this)">正規表現・grep</button>
+  <button class="fbtn" data-cat="redir" onclick="filterCat('redir',this)">リダイレクト</button>
+  <button class="fbtn" data-cat="perm" onclick="filterCat('perm',this)">パーミッション</button>
+  <button class="fbtn" data-cat="proc" onclick="filterCat('proc',this)">プロセス管理</button>
+  <button class="fbtn" data-cat="user" onclick="filterCat('user',this)">ユーザー管理</button>
+</div>
+
+<div id="qlist"></div>
+</div>
+
+<script>
+const QS = [
+{n:1,cat:'cmd',text:'次のファイル名すべてに一致するワイルドカードはどれですか。（ファイル名: ttyS0〜5, ttya0〜a5など複数形式）',type:'multi',
+opts:['tty?[0-5]','tty[A-Z][012]','ttyS[1-5]','tty*2','tty[Ss][02]'],
+ans:[0,4],
+explain:`<span class="point">ワイルドカードの読み方：</span>
+<code>?</code> = 任意の1文字　<code>*</code> = 0文字以上の任意文字　<code>[...]</code> = 括弧内のどれか1文字<br><br>
+<b>A) tty?[0-5]</b>：ttyの後に任意の1文字、その後0〜5の数字。ttyS0〜ttyS5 や ttya0〜ttya5 にマッチ ✅<br>
+<b>E) tty[Ss][02]</b>：ttyの後にSかs、その後0か2のみ。問題のファイル名に含まれる場合 ✅<br>
+<b>B) tty[A-Z][012]</b>：大文字1文字+012のみ → 範囲が狭すぎて全部マッチしない ❌<br>
+<b>C) ttyS[1-5]</b>：Sのみ・1〜5のみ → S0やa0系にマッチしない ❌<br>
+<span class="tip">💡 試験頻出：? は「ちょうど1文字」、* は「0文字以上何でも」の違いを絶対覚える</span>`},
+
+{n:2,cat:'cmd',text:'セクション 1 のマニュアルページコマンドを表示するのはどれですか。',type:'single',
+opts:['man command(1)','man 1.command','man -s 1 command','man 1 command','man command@1'],
+ans:[3],
+explain:`<span class="point">man コマンドのセクション指定：</span>
+<code>man [セクション番号] コマンド名</code> が基本形。<br><br>
+<b>man 1 command</b>：セクション番号を先に書く ✅<br>
+<b>man -s 1 command</b>：-s オプションでもセクション指定できる（一部システムで有効）が、最も標準的なのは <code>man 1 command</code><br><br>
+manのセクション番号一覧：<br>
+1=ユーザーコマンド　2=システムコール　3=ライブラリ　4=デバイス　5=設定ファイル　8=管理コマンド<br>
+<span class="tip">💡 passwd(1) と passwd(5) のように同名で別セクションがある場合にセクション指定が必要</span>`},
+
+{n:3,cat:'cmd',text:'すべての一般的なファイルタイプに関する情報を含む定義データベースファイルを使用して、ファイルの形式を表示するコマンドはどれですか。',type:'single',
+opts:['file','magic','pmagic','type','hash'],
+ans:[0],
+explain:`<span class="point">file コマンド：</span>
+<code>file ファイル名</code> でファイルの種類を判定する。<br>
+「magic データベース」（/usr/share/magic や /etc/magic）を参照して判定。<br><br>
+例：<br>
+<code>file script.sh</code> → Bourne-Again shell script, ASCII text<br>
+<code>file image.png</code> → PNG image data, 800 x 600<br><br>
+<span class="tip">💡 拡張子に騙されない！file コマンドは中身を見て判定するので信頼性が高い</span>
+<span class="warn">⚠️ magic は「マジックデータベースの名前」であってコマンドではない</span>`},
+
+{n:4,cat:'cmd',text:'locate コマンドで使用されるデータベースを更新するプログラムを答えなさい。（記述式）',type:'input',
+ans:['updatedb'],
+explain:`<span class="point">locate と updatedb の関係：</span>
+<code>locate</code> は事前に作成したデータベースからファイルを高速検索する。<br>
+<code>updatedb</code> でそのデータベースを更新する（通常はcronで自動実行）。<br><br>
+<b>find との違い：</b><br>
+<code>locate</code>：データベース検索 → 高速だが最新状態でない場合がある<br>
+<code>find</code>：リアルタイムにディレクトリを走査 → 低速だが確実<br>
+<span class="tip">💡 試験では「locate のDBを更新するコマンドは？」→ updatedb と即答できるようにする</span>`},
+
+{n:5,cat:'cmd',text:'/tmp/ ディレクトリとそのサブディレクトリ内のroot所有ファイルを一覧表示するコマンドはどれですか。（2つ選択）',type:'multi',
+opts:['find -path /tmp -user root –print','find /tmp -user root','find /tmp -user root -print','find /tmp -uid root -print','find -path /tmp -uid root'],
+ans:[1,2],
+explain:`<span class="point">find コマンドの基本構造：</span>
+<code>find [検索パス] [条件] [アクション]</code><br><br>
+<b>B) find /tmp -user root</b>：デフォルトアクションは -print なので省略可能 ✅<br>
+<b>C) find /tmp -user root -print</b>：明示的に -print を指定 ✅<br>
+<b>A) find -path /tmp -user root –print</b>：-path は別の意味（パスパターンマッチ）。検索起点は引数で先に指定する ❌<br>
+<b>D) find /tmp -uid root -print</b>：-uid は数値UID用。rootの場合は -uid 0 と書く。"root"という文字列は使えない ❌<br>
+<span class="tip">💡 -user は名前指定、-uid は数値指定。混同しやすいので注意</span>`},
+
+{n:6,cat:'redir',text:'bash 内で有効なストリームリダイレクト演算子はどれですか。（2つ選択）',type:'multi',
+opts:['2>&1','%>','<','>>>','#>'],
+ans:[0,2],
+explain:`<span class="point">リダイレクト演算子一覧：</span><br>
+<code>></code> ：標準出力を上書き<br>
+<code>>></code>：標準出力を追記<br>
+<code><</code>：標準入力<br>
+<code>2></code>：標準エラーを出力<br>
+<code>2>&1</code>：標準エラーを標準出力と同じ場所へ<br><br>
+<b>A) 2>&1</b>：stderr を stdout にリダイレクト ✅<br>
+<b>C) <</b>：標準入力のリダイレクト（ファイルをコマンドの入力として渡す）✅<br>
+<b>B) %>、D) >>>、E) #></b>：bash では無効な演算子 ❌<br>
+<span class="tip">💡 2>&1 は「エラーも標準出力に混ぜる」。command > file 2>&1 の順序は重要！</span>`},
+
+{n:7,cat:'vi',text:'vi コマンドで、現在の行と次の行の2行を削除するのはどれですか。',type:'single',
+opts:['d2','dd2','2d','de12','2dd'],
+ans:[4],
+explain:`<span class="point">vi の数値コマンド：</span>
+<b>[回数] + コマンド</b> の形式で繰り返し実行できる。<br><br>
+<code>dd</code> = 1行削除<br>
+<code>2dd</code> = 2行削除（現在行＋次の行）✅<br>
+<code>3dd</code> = 3行削除<br><br>
+同様に：<br>
+<code>2yy</code> = 2行コピー　<code>2j</code> = 2行下に移動<br>
+<span class="warn">⚠️ d2 や dd2 は正しくない。数字は「コマンドの前」に置くのが基本</span>
+<span class="tip">💡 [数字][コマンド] の順序を体で覚えよう</span>`},
+
+{n:8,cat:'vi',text:'vi で3行削除し別の行に移動した直後に、削除したテキストを現在行の下に貼り付ける1文字コマンドはどれですか。',type:'single',
+opts:['U（大文字）','u（小文字）','P（大文字）','i（小文字）','p（小文字）'],
+ans:[4],
+explain:`<span class="point">vi のコピー・貼り付け：</span><br>
+<code>p</code>（小文字）= カーソルの下/後ろに貼り付け ✅<br>
+<code>P</code>（大文字）= カーソルの上/前に貼り付け<br>
+<code>u</code>（小文字）= アンドゥ（元に戻す）<br>
+<code>U</code>（大文字）= 行全体を元に戻す<br><br>
+削除（dd）したテキストはバッファに入るので、移動後に p で貼り付け可能。<br>
+<span class="tip">💡 p と P の違い：「p = 下/後ろ」「P = 上/前」。小文字が後ろ、大文字が前、と覚える</span>`},
+
+{n:9,cat:'vi',text:'vi を終了する前に、現在のファイルを filea.txt として保存するコマンドはどれですか。',type:'single',
+opts:['%w filea.txt',':s filea.txt','%s filea.txt',':w filea.txt',':save filea.txt'],
+ans:[3],
+explain:`<span class="point">vi の保存コマンド：</span><br>
+<code>:w</code> = 上書き保存<br>
+<code>:w ファイル名</code> = 名前を付けて保存 ✅<br>
+<code>:wq</code> = 保存して終了<br>
+<code>:q!</code> = 保存せずに強制終了<br>
+<code>:q</code> = 変更がなければ終了<br><br>
+<code>:s</code> は置換コマンド（substitute）なので全く別の機能。<br>
+<span class="tip">💡 vi コマンドは「: で始まる = ex コマンドモード」。: を押してから入力する</span>`},
+
+{n:10,cat:'redir',text:'foo コマンドの出力を画面に表示しながら、同時に /tmp/foodata に書き込むコマンドはどれですか。',type:'single',
+opts:['foo | cp /tmp/foodata','foo | less /tmp/foodata','foo > stdout >> /tmp/foodata','foo | tee /tmp/foodata','foo > /tmp/foodata'],
+ans:[3],
+explain:`<span class="point">tee コマンド：</span>
+T字型パイプのイメージ。標準入力を読んで「画面」と「ファイル」の両方に同時出力する。<br><br>
+<code>command | tee ファイル名</code>：上書き<br>
+<code>command | tee -a ファイル名</code>：追記<br><br>
+E の <code>foo > /tmp/foodata</code> はファイルにだけ書き込む（画面には表示されない）<br>
+<span class="tip">💡 tee = T字管。水を2方向に分岐させるパイプのイメージ</span>`},
+
+{n:11,cat:'cmd',text:'コマンド foo が呼び出されたときに実行される実行ファイルへのパスを表示するコマンドはどれですか。',type:'single',
+opts:['which foo','lsattr foo','whatis foo','apropos foo','locate foo'],
+ans:[0],
+explain:`<span class="point">コマンド位置確認ツール：</span><br>
+<code>which foo</code>：PATH から実行ファイルの場所を探して表示 ✅<br>
+<code>type foo</code>：シェルがそのコマンドをどう処理するか（組み込み/エイリアス/ファイル）<br>
+<code>whatis foo</code>：man ページの1行説明<br>
+<code>apropos foo</code>：キーワードで man を検索<br>
+<code>locate foo</code>：データベースからファイルを検索（パス限定ではない）<br>
+<span class="tip">💡 which と type の違い：which は外部コマンドのパス、type は組み込みコマンドも含めた判定</span>`},
+
+{n:12,cat:'cmd',text:'ファイル名にスペースが含まれている場合、find の出力を xargs にリダイレクトするときに使うオプションはどれですか。',type:'single',
+opts:['-nospace','-print0','-ignore-space','-rep-space','-printnul'],
+ans:[1],
+explain:`<span class="point">-print0 と xargs -0 のセット：</span>
+ファイル名にスペースが含まれると、デフォルトの改行区切りでは誤動作する。<br><br>
+<code>find ... -print0 | xargs -0 command</code><br><br>
+<code>-print0</code>：NULL文字区切りで出力（スペースを含むファイル名でも安全）<br>
+<code>xargs -0</code>：NULL文字区切りで読み取る<br>
+<span class="tip">💡 セットで覚える：-print0（find側）と -0（xargs側）は必ずペアで使う</span>`},
+
+{n:13,cat:'redir',text:'files が存在しない場合、「ls > files」のコマンドについて正しいことはどれですか。',type:'single',
+opts:['ls の出力が端末に出力される','files が作成され、ls の出力が含まれる','エラーメッセージが表示され、lsは実行されない','ls の出力を受け取って files コマンドが実行される','ls の出力はすべて破棄される'],
+ans:[1],
+explain:`<span class="point">> リダイレクトの動作：</span>
+<code>></code> は出力先ファイルが存在しない場合、<b>自動的に新規作成</b>する。<br><br>
+<code>ls > files</code>：files ファイルが作成され、ls の出力が書き込まれる ✅<br><br>
+もし files が既存ファイルなら上書きされる（元の内容は消える！）<br>
+追記したい場合は <code>>></code> を使う。<br>
+<span class="warn">⚠️ > は上書き、>> は追記。ファイルが存在しない場合は両方とも新規作成する</span>`},
+
+{n:14,cat:'redir',text:'ls の出力を標準エラーにリダイレクトするコマンドはどれですか。',type:'single',
+opts:['ls > -1','ls << ERR','ls >&2','ls >> 2','ls | error'],
+ans:[2],
+explain:`<span class="point">ファイルディスクリプタ番号：</span><br>
+0 = 標準入力（stdin）<br>
+1 = 標準出力（stdout）<br>
+2 = 標準エラー（stderr）<br><br>
+<code>ls >&2</code>：stdout（デフォルト）を stderr（2）にリダイレクト ✅<br>
+<code>>&</code> は「出力をファイルディスクリプタへ」という演算子<br><br>
+<code>2>&1</code> の逆パターン（stdoutをstderrへ）が問われている。<br>
+<span class="tip">💡 &2 の & は「ファイルではなくファイルディスクリプタ番号」であることを示す</span>`},
+
+{n:15,cat:'cmd',text:'gzip 圧縮された tar アーカイブファイルの内容を表示するコマンドはどれですか。',type:'single',
+opts:['tar cf archive.tgz','tar ztf archive.tgz','gzip -d archive.tgz | tar tvf -','gzip archive.tgz | tar xvf -','tar -fzt archive.tgz'],
+ans:[1],
+explain:`<span class="point">tar オプション早見表：</span><br>
+<code>c</code>=作成（create）　<code>x</code>=展開（extract）　<code>t</code>=一覧（list）<br>
+<code>v</code>=詳細表示　<code>f</code>=ファイル指定　<code>z</code>=gzip　<code>j</code>=bzip2<br><br>
+<b>B) tar ztf</b>：z（gzip解凍）+ t（一覧）+ f（ファイル指定）✅<br>
+<b>C) gzip -d | tar tvf -</b>：動作はするが冗長。tar z オプションで一発でOK<br>
+<b>A) tar cf</b>：c は「作成」なので全く逆の操作 ❌<br>
+<span class="tip">💡 .tgz と .tar.gz は同じもの。どちらも tar + gzip の組み合わせ</span>`},
+
+{n:16,cat:'cmd',text:'/etc/passwd からユーザー名（1列目）とプライマリグループ（4列目）を出力するコマンドはどれですか。',type:'single',
+opts:['cut -d : -f 1,4 /etc/passwd','sort -t : -k 1,4 /etc/passwd','fmt -f 1,4 /etc/passwd','paste -f 1,4 /etc/passwd','split -c 1,4 /etc/passwd'],
+ans:[0],
+explain:`<span class="point">cut コマンド：</span>
+<code>cut -d 区切り文字 -f フィールド番号 ファイル</code><br><br>
+<code>cut -d : -f 1,4 /etc/passwd</code><br>
+<code>-d :</code>：区切り文字をコロンに指定<br>
+<code>-f 1,4</code>：1番目と4番目のフィールドを取り出す<br><br>
+/etc/passwd の構造：<br>
+<code>ユーザー名:パスワード:UID:GID:コメント:ホーム:シェル</code><br>
+<span class="tip">💡 cut は「列を切り取る」コマンド。-d で区切り文字、-f でフィールド番号</span>`},
+
+{n:17,cat:'regex',text:'単一の大文字を表す正規表現はどれですか。',type:'single',
+opts:[':UPPER:','[A-Z]','!az','%C','{AZ}'],
+ans:[1],
+explain:`<span class="point">正規表現 文字クラス：</span><br>
+<code>[A-Z]</code>：A から Z の任意の1文字（大文字1文字）✅<br>
+<code>[a-z]</code>：小文字1文字<br>
+<code>[0-9]</code>：数字1文字<br>
+<code>[A-Za-z0-9]</code>：英数字1文字<br><br>
+POSIX文字クラス（参考）：<br>
+<code>[:upper:]</code>：大文字（ただし <code>[[:upper:]]</code> と二重括弧で使う）<br>
+<span class="warn">⚠️ :UPPER: は正しくない書き方。POSIXなら [[:upper:]] が正解</span>`},
+
+{n:18,cat:'regex',text:'ログファイルから午前8時台のエントリを除外するコマンドはどれですか。（タイムスタンプ形式：DD/MM/YYYY:hh:mm:ss）',type:'single',
+opts:["grep -E ':08:[09]+:[09]+' loga.log","grep -E ':08:[00]+' loga.log","grep -E loga.log ':08:[0-9]+:[0-9]+'","grep loga.log ':08:[0-9]:[0-9]'","grep -E ':08:[0-9]+:[0-9]+' loga.log"],
+ans:[4],
+explain:`<span class="point">grep -E（拡張正規表現）：</span>
+<code>grep -E 'パターン' ファイル</code><br><br>
+<code>:08:[0-9]+:[0-9]+</code> の分解：<br>
+<code>:08:</code> = 文字通り :08: にマッチ（8時台）<br>
+<code>[0-9]+</code> = 数字1文字以上（mm の部分）<br>
+<code>:</code> = コロン<br>
+<code>[0-9]+</code> = 数字1文字以上（ss の部分）<br><br>
+<b>A)</b> [09] は0か9のみ。全分秒をカバーできない ❌<br>
+<b>C)</b> 引数の順序が違う（パターンよりファイルが先）❌<br>
+<b>D)</b> -E なし、+ なしで量詞が使えない ❌<br>
+<span class="tip">💡 -E オプションで + ? | () などの拡張正規表現が使えるようになる</span>`},
+
+{n:19,cat:'cmd',text:'シェルが特定のコマンドをどのように処理するかを出力するコマンドはどれですか。',type:'single',
+opts:['where','type','stat','case','fileinfo'],
+ans:[1],
+explain:`<span class="point">type コマンド：</span>
+<code>type コマンド名</code> でシェルのコマンド解釈を表示する。<br><br>
+出力例：<br>
+<code>type ls</code> → ls is /bin/ls<br>
+<code>type cd</code> → cd is a shell builtin（組み込みコマンド）<br>
+<code>type ll</code> → ll is aliased to 'ls -la'（エイリアス）<br><br>
+<code>which</code>との違い：<code>which</code>は外部コマンドのパスのみ、<code>type</code>は組み込みやエイリアスも含めて判定<br>
+<span class="tip">💡 問11（which）とこの問題（type）をセットで覚える</span>`},
+
+{n:20,cat:'redir',text:'ファイル data を ls の出力で作成するか、存在する場合は上書きするコマンドはどれですか。',type:'single',
+opts:['ls 3> data','ls >& data','ls > data','ls >> data','ls >>> data'],
+ans:[2],
+explain:`<span class="point">標準出力のリダイレクト：</span><br>
+<code>ls > data</code>：ls の stdout を data ファイルへ（上書き）✅<br>
+<code>ls >> data</code>：追記（ファイルが存在すれば末尾に追加）<br>
+<code>ls >& data</code>：stdout と stderr の両方をリダイレクト（bash では有効だが問題は「ls の出力のみ」）<br>
+<code>ls 3> data</code>：FD3 にリダイレクト（通常は使わない）<br>
+<span class="tip">💡 > の基本：ファイルがなければ作成、あれば上書き（警告なし！）</span>`},
+
+{n:21,cat:'vi',text:'vi エディタで、開いているドキュメントを保存して終了するコマンドはどれですか。（2つ選択）',type:'multi',
+opts:['Ctrl XX','Esc ZZ','Esc zz','Esc:wq','Ctrl:W'],
+ans:[1,3],
+explain:`<span class="point">vi の終了コマンド：</span><br>
+<code>ZZ</code>（大文字2つ）：保存して終了 ✅（Esc でノーマルモードに戻ってから）<br>
+<code>:wq</code>：write + quit。Esc → : → wq → Enter ✅<br>
+<code>:q!</code>：強制終了（保存しない）<br>
+<code>:q</code>：変更なしのとき終了<br><br>
+<b>C) Esc zz</b>：小文字の zz は「カーソル行を中央へ」という表示コマンド ❌<br>
+<span class="warn">⚠️ ZZ（大文字）と zz（小文字）は全く別の機能！大文字が保存終了</span>`},
+
+{n:22,cat:'regex',text:'grep コマンドの -v オプションの効果は何ですか。',type:'single',
+opts:['一致しない行のみを出力する','色が一致する部分を強調する','すべての行と一致するプレフィックスをa+で出力する','コマンドのバージョン情報が表示される','最後に一致した行を最初に表示する'],
+ans:[0],
+explain:`<span class="point">grep の主要オプション：</span><br>
+<code>-v</code>：マッチしない行を出力（inVert = 反転）✅<br>
+<code>-i</code>：大文字小文字を無視<br>
+<code>-n</code>：行番号を表示<br>
+<code>-c</code>：マッチした行数を表示<br>
+<code>-l</code>：マッチしたファイル名のみ表示<br>
+<code>-r</code>：ディレクトリを再帰的に検索<br>
+<code>--color</code>：マッチ部分を色付け表示<br>
+<span class="tip">💡 -v は「除外」フィルタとして超頻出。例：grep -v "^#" config.conf でコメント行を除外</span>`},
+
+{n:23,cat:'regex',text:'正規表現 s/[ABC][abc]/xx/ を次の文字列「ABCabc」に適用した場合の出力はどれですか。',type:'single',
+opts:['ABxxbc','xxCxxc','xxxxxx','ABCabc','Axxaxx'],
+ans:[0],
+explain:`<span class="point">sed の置換コマンド s///：</span>
+<code>s/[ABC][abc]/xx/</code> の分解：<br>
+<code>[ABC]</code>：A か B か C の1文字<br>
+<code>[abc]</code>：a か b か c の1文字<br>
+→ 「A,B,Cのどれか」+「a,b,cのどれか」の2文字を xx に置換<br><br>
+「ABCabc」に適用：<br>
+最初に見つかる [ABC][abc] のパターン = 「Ca」（位置3-4）ではなく「Ab」？<br>
+→ 実際は左から走査：A→B→C→a で「Cb」や「Ca」を探す...<br>
+左から探すと最初に「Ab」... いや「ABCabc」で最初に [ABC][abc]にマッチするのは位置3の「Ca」<br>
+→ 「AB <b>Ca</b> bc」→「AB<b>xx</b>bc」= ABxxbc ✅<br>
+<span class="tip">💡 s/// はデフォルトで最初にマッチした箇所のみ置換。全置換は s///g</span>`},
+
+{n:24,cat:'cmd',text:'シェルに「test」を出力するコマンドはどれですか。',type:'single',
+opts:["echo test","echo 'test'","echo \"test\"","printf 'test\\n'","print test"],
+ans:[0],
+explain:`<span class="point">echo コマンド：</span>
+<code>echo test</code> = test と出力 ✅<br>
+<code>echo 'test'</code> = シングルクォートでもそのまま出力（変数展開なし）<br>
+<code>echo "test"</code> = ダブルクォートでも出力（変数展開あり）<br><br>
+クォートの違い：<br>
+<code>echo '$HOME'</code> → $HOME（展開されない）<br>
+<code>echo "$HOME"</code> → /home/user（展開される）<br>
+<span class="tip">💡 シングルクォート='全て文字通り' / ダブルクォート="変数・コマンド展開あり"</span>`},
+
+{n:25,cat:'regex',text:'正規表現を使用してファイルの内容を検索できるコマンドはどれですか。',type:'single',
+opts:['pgrep','locate','grep','reggrep','find'],
+ans:[2],
+explain:`<span class="point">grep（Global Regular Expression Print）：</span>
+ファイル内の行を正規表現で検索して出力する。<br><br>
+<code>grep "パターン" ファイル</code><br>
+<code>grep -E "拡張正規表現" ファイル</code>（egrep と同等）<br>
+<code>grep -F "固定文字列" ファイル</code>（fgrep と同等）<br><br>
+<b>pgrep</b>：プロセス名で PID を検索（ファイル内容ではない）<br>
+<b>locate</b>：ファイル名を検索（ファイル内容ではない）<br>
+<b>find</b>：ファイルを検索（内容検索は -exec grep と組み合わせる）<br>
+<span class="tip">💡 grep の語源：ed エディタの g/re/p コマンド（global/regular expression/print）</span>`},
+
+{n:26,cat:'cmd',text:'find コマンドで、検索するサブディレクトリの階層を制限するオプションはどれですか。',type:'single',
+opts:['-dirmax','–n','-s','-maxlevels','-maxdepth'],
+ans:[4],
+explain:`<span class="point">find -maxdepth：</span>
+<code>find /path -maxdepth 数値</code><br><br>
+<code>-maxdepth 1</code>：検索パス直下のみ（サブディレクトリに入らない）<br>
+<code>-maxdepth 2</code>：1階層のサブディレクトリまで<br>
+<code>-maxdepth 0</code>：指定パス自体のみ<br><br>
+組み合わせ例：<br>
+<code>find /home -maxdepth 2 -name "*.conf"</code><br>
+<span class="tip">💡 -maxdepth と対になるのが -mindepth（最小階層）。セットで覚えると便利</span>`},
+
+{n:27,cat:'cmd',text:'/etc/passwd からログインシェルとともにユーザー名を生成するコマンドはどれですか。',type:'single',
+opts:['sort -t : -k1,7 /etc/passwd','colrm 1,7 /etc/passwd','cut -d : -f 1,7 /etc/passwd','chop -c 1,7 /etc/passwd','column -s : 1,7 /etc/passwd'],
+ans:[2],
+explain:`<span class="point">/etc/passwd の構造（7フィールド）：</span>
+<code>ユーザー名:x:UID:GID:コメント:ホームDir:ログインシェル</code><br>
+1番目=ユーザー名　7番目=ログインシェル<br><br>
+<code>cut -d : -f 1,7 /etc/passwd</code><br>
+<code>-d :</code>：コロン区切り<br>
+<code>-f 1,7</code>：1列目と7列目を出力<br><br>
+問16（1,4列目）と本問（1,7列目）の構造を把握しておくと解ける。<br>
+<span class="tip">💡 /etc/passwd の7フィールドをすべて暗記する：user:pw:uid:gid:comment:home:shell</span>`},
+
+{n:28,cat:'cmd',text:'gunzip texts.tgz を実行した後、現在のディレクトリに存在するファイルはどれですか。',type:'single',
+opts:['a.txt、b.txt、texts.tgz のみ','texts.tar と texts.tgz のみ','a.txt.gz と b.txt.gz のみ','a.txt と b.txt のみ','texts.tar のみ'],
+ans:[4],
+explain:`<span class="point">gunzip の動作：</span>
+<code>gunzip ファイル.tgz</code>：gzip圧縮を解凍して .tar ファイルを生成する。<br>
+元の .tgz ファイルは削除される。<br><br>
+texts.tgz → gunzip → texts.tar（tar アーカイブのみ）<br>
+ファイルの展開（tar x）は行われていない！<br><br>
+「展開」と「解凍」の違い：<br>
+<code>gunzip</code>：gzip圧縮を解く（.tgz → .tar）<br>
+<code>tar x</code>：tar アーカイブをファイルに展開<br>
+<span class="warn">⚠️ gunzip だけでは中身のファイルは取り出せない！tar xzf が必要</span>`},
+
+{n:29,cat:'vi',text:'vi でコマンドを複数回発行したり複数行に適用するにはどうすればよいですか。',type:'single',
+opts:['コマンド:repeatに続けて番号とコマンド','4l や 2yj などコマンドの直前に番号を指定','シフトキーとカーソルキーで行を選択',':set repeat=4 などで繰り返し設定','l4 や yj2 などコマンドの後に番号'],
+ans:[1],
+explain:`<span class="point">vi の数値前置：</span>
+<b>[回数][コマンド]</b> の形式で繰り返し実行できる。<br><br>
+例：<br>
+<code>4l</code>：右に4文字移動<br>
+<code>2yj</code>：下2行をコピー<br>
+<code>3dd</code>：3行削除<br>
+<code>5j</code>：5行下に移動<br>
+<code>10G</code>：10行目へジャンプ<br><br>
+問7（2dd）と合わせて「数字は前に置く」を体得しよう。<br>
+<span class="tip">💡 vi は「数字 + コマンド」が基本。コマンドの後に数字は付けない</span>`},
+
+{n:30,cat:'cmd',text:'ファイルを読み取り、指定されたサイズの複数ファイルに分割して保存するコマンドはどれですか。',type:'single',
+opts:['ar','cat','break','split','parted'],
+ans:[3],
+explain:`<span class="point">split コマンド：</span>
+<code>split [オプション] ファイル [出力プレフィックス]</code><br><br>
+<code>split -b 10M bigfile.tar part_</code>：10MBずつに分割<br>
+<code>split -l 1000 data.txt chunk_</code>：1000行ずつに分割<br><br>
+分割後のファイル名：part_aa, part_ab, part_ac ... と自動的に命名される<br><br>
+結合するには：<code>cat part_* > restored.tar</code><br>
+<span class="tip">💡 split の逆操作は cat。大きなファイルをメール添付や転送する際に活用</span>`},
+
+{n:31,cat:'cmd',text:'xargs コマンドの目的は何ですか。',type:'single',
+opts:['通常は短いオプションしか受け入れないコマンドに長いオプションを指定できる','グラフィカルに質問し答えをシェルに返す','呼び出しごとに異なるパラメータを使用してコマンドを繰り返す','引数をXサーバに渡す','標準入力を読み取り実行するコマンドを生成する'],
+ans:[4],
+explain:`<span class="point">xargs コマンド：</span>
+標準入力から読み取ったデータを「引数」として別のコマンドに渡す。<br><br>
+<code>find /tmp -name "*.log" | xargs rm</code><br>
+→ find の出力を rm の引数として渡す<br><br>
+<code>echo "file1 file2 file3" | xargs ls -la</code><br>
+→ ls -la file1 file2 file3 を実行<br><br>
+なぜ必要？：パイプは「入力」として渡すが、多くのコマンドは「引数」を必要とするため。<br>
+<span class="tip">💡 xargs = 「標準入力を引数に変換する」変換器</span>`},
+
+{n:32,cat:'redir',text:'bash で「1>&2」を挿入するとどのようにリダイレクトされますか。',type:'single',
+opts:['標準エラーを標準出力へ','標準出力を標準エラーへ','標準出力を標準入力へ','標準エラーを標準入力へ','標準入力を標準エラーへ'],
+ans:[1],
+explain:`<span class="point">ファイルディスクリプタのリダイレクト：</span>
+<code>1>&2</code>：FD1（stdout）を FD2（stderr）に向ける = 標準出力を標準エラーへ ✅<br>
+<code>2>&1</code>：FD2（stderr）を FD1（stdout）に向ける = 標準エラーを標準出力へ<br><br>
+読み方：<code>1>&2</code> = 「1番（stdout）を2番（stderr）の方向へ」<br><br>
+問6（2>&1）と本問（1>&2）の違いを整理：<br>
+・2>&1 = エラーを出力に → エラーも画面に出したいとき<br>
+・1>&2 = 出力をエラーに → スクリプトでエラーメッセージを出力するとき<br>
+<span class="tip">💡 矢印の向き：N>&M = 「Nを、Mが指す場所へ向ける」</span>`},
+
+{n:33,cat:'regex',text:'入力の .txt ファイル名を .bak.txt に変換する正規表現はどれですか。',type:'single',
+opts:['s/[.txt]/.bak$1/','s/^.txt/.bak/','s/^txt$/.bak^/','s/txt$/bak.txt/','s/txt/bak.txt/'],
+ans:[3],
+explain:`<span class="point">sed 置換と $ アンカー：</span>
+<code>s/txt$/bak.txt/</code>：行末（$）の txt を bak.txt に置換 ✅<br><br>
+例：file.txt → file.bak.txt<br>
+<code>txt$</code>：行末にある txt にマッチ（途中の txt は対象外）<br>
+<code>bak.txt</code>：置換後の文字列（. はここでは正規表現ではなく文字通り）<br><br>
+<b>E) s/txt/bak.txt/</b>：行末指定なしなので「textfile.txt」の text の txt も置換してしまう ❌<br>
+<span class="tip">💡 $ = 行末アンカー。拡張子の置換には必須。^ = 行頭アンカー</span>`},
+
+{n:34,cat:'vi',text:'vi のコマンドモードで、テキストの検索を逆（上）方向に開始する文字はどれですか。',type:'single',
+opts:['/','s','r','?','F'],
+ans:[3],
+explain:`<span class="point">vi の検索コマンド：</span><br>
+<code>/</code>（スラッシュ）：下方向へ検索（Forward）<br>
+<code>?</code>（クエスチョン）：上方向へ検索（Backward）✅<br><br>
+検索後のナビゲーション：<br>
+<code>n</code>：同じ方向の次のマッチへ<br>
+<code>N</code>（大文字）：逆方向の次のマッチへ<br><br>
+<span class="tip">💡 / は「前向き（Forward）」、? は「後ろ向き（backward）」。? の形が「後ろを振り返る」イメージ</span>`},
+
+{n:35,cat:'cmd',text:'完全パスを指定せずにコマンドを実行するとき、実行ファイルの完全パスを表示できるツールはどれですか。（2つ選択）',type:'multi',
+opts:['type','find','locate','pwd','which'],
+ans:[0,4],
+explain:`<span class="point">コマンド位置確認（問11・問19の総まとめ）：</span><br>
+<code>type</code>：シェルがコマンドをどう解釈するか（組み込み/エイリアス/パス）✅<br>
+<code>which</code>：PATH からコマンドの実行ファイルパスを表示 ✅<br><br>
+<code>find</code>：ファイル検索（PATH検索ではない）<br>
+<code>locate</code>：DBファイル検索（PATH検索ではない）<br>
+<code>pwd</code>：現在のディレクトリを表示（全く別の機能）<br>
+<span class="tip">💡 3問（11, 19, 35）で type と which が問われる。2つをセットで覚える</span>`},
+
+{n:36,cat:'user',text:'/etc/group ファイルは、ユーザーのプライマリグループ割り当てについて管理していますか？',type:'single',
+opts:['/etc/group','/etc/pgroup','/etc/shadow','/etc/gshadow','/etc/passwd'],
+ans:[4],
+explain:`<span class="point">プライマリグループの管理：</span>
+<b>プライマリグループ</b>は <code>/etc/passwd</code> の4番目フィールド（GID）で管理 ✅<br>
+<code>/etc/group</code>：グループの定義とメンバーリスト（サブグループ/補助グループ）<br><br>
+違いを整理：<br>
+・プライマリグループ → /etc/passwd の4列目のGIDで指定<br>
+・補助グループ → /etc/group の4列目にユーザー名を記載<br><br>
+<span class="tip">💡 プライマリ = passwd、グループメンバー = group、と覚える</span>`},
+
+{n:37,cat:'user',text:'useradd で新しいユーザーのホームディレクトリを作成し、標準ファイルでプロビジョニングするオプションを答えなさい。（記述式）',type:'input',
+ans:['-m'],
+explain:`<span class="point">useradd オプション：</span><br>
+<code>-m</code>（--create-home）：ホームディレクトリを作成し、/etc/skel の内容をコピー ✅<br>
+<code>-M</code>：ホームディレクトリを作成しない<br>
+<code>-d パス</code>：ホームディレクトリのパスを指定<br>
+<code>-s シェル</code>：ログインシェルを指定<br>
+<code>-u UID</code>：UIDを指定<br>
+<code>-g グループ</code>：プライマリグループを指定<br>
+<code>-G グループ</code>：補助グループを指定<br>
+<span class="tip">💡 /etc/skel = スケルトンディレクトリ。新ユーザーのホームに自動コピーされる雛形</span>`},
+
+{n:38,cat:'user',text:'既存のすべてのユーザーを一覧表示する getent コマンドはどれですか。',type:'single',
+opts:['getent uids','getent logins','getent passwd','getent users','getent homes'],
+ans:[2],
+explain:`<span class="point">getent コマンド：</span>
+<code>getent データベース名 [キー]</code>でシステムデータベースを参照する。<br><br>
+<code>getent passwd</code>：全ユーザー情報を表示（/etc/passwd + LDAP等）✅<br>
+<code>getent passwd ユーザー名</code>：特定ユーザーの情報<br>
+<code>getent group</code>：全グループ情報<br>
+<code>getent hosts</code>：ホスト情報<br><br>
+<code>cat /etc/passwd</code>との違い：LDAP等の外部ディレクトリも含めて参照できる<br>
+<span class="tip">💡 getent = "get entries" の略。NSS(Name Service Switch)を通じて各種DBに対応</span>`},
+
+{n:39,cat:'user',text:'UID と GID が同一の場合、正しい説明はどれですか。',type:'single',
+opts:['UID と GID は独立しているため、ユーザーとグループは引き続き使用できる','UID が優先されるため、ユーザーは利用できるがグループは利用できない','GID が優先されるため、グループは使えるがユーザーは使えない','ユーザーはグループの唯一のメンバーである','ID の競合によりユーザーとグループは利用できない'],
+ans:[0],
+explain:`<span class="point">UID と GID の独立性：</span>
+UID（ユーザーID）と GID（グループID）は<b>別々の名前空間</b>で管理される。<br>
+同じ数値であっても競合は発生しない。<br><br>
+例：UID=1000 のユーザー "alice" と GID=1000 のグループ "staff" は共存できる<br><br>
+実際、多くのシステムでは新規ユーザー作成時に同じ番号のプライベートグループを作成する（UPG: User Private Group）。<br>
+<span class="tip">💡 UID と GID は独立した番号空間。同じ数字でも別物</span>`},
+
+{n:40,cat:'user',text:'useradd で指定できるものはどれですか。（2つ選択）',type:'multi',
+opts:['新しいアカウントへのログインに使用される SSH キー','ユーザーが sudo を使用して実行できるコマンド','ユーザーのホームディレクトリへの絶対パス','新しいユーザーが使用できるプリンター','ユーザーの数値ユーザーID（UID）'],
+ans:[2,4],
+explain:`<span class="point">useradd の指定可能項目：</span><br>
+<code>-d パス</code>：ホームディレクトリへの絶対パス ✅<br>
+<code>-u UID</code>：数値UID ✅<br>
+<code>-s シェル</code>：ログインシェル<br>
+<code>-g グループ</code>：プライマリグループ<br>
+<code>-G グループ</code>：補助グループ<br>
+<code>-c コメント</code>：コメントフィールド（GECOS）<br><br>
+SSH鍵は ~/.ssh/authorized_keys への追加が必要（useradd のオプションではない）<br>
+sudo設定は /etc/sudoers または visudo で行う<br>
+<span class="tip">💡 useradd はアカウントの「基本情報」を設定。SSH鍵やsudoは別途設定が必要</span>`},
+
+{n:41,cat:'user',text:'/etc/group ファイルにあるフィールドはどれですか。（2つ選択）',type:'multi',
+opts:['グループに属するユーザーのリスト','グループのホームディレクトリ','グループの説明','グループの名前','デフォルトのグループACL'],
+ans:[0,3],
+explain:`<span class="point">/etc/group の構造（4フィールド）：</span>
+<code>グループ名:パスワード:GID:メンバーリスト</code><br><br>
+1番目：グループ名 ✅<br>
+2番目：グループパスワード（通常 x または空）<br>
+3番目：GID（グループID）<br>
+4番目：メンバーのユーザー名リスト（カンマ区切り）✅<br><br>
+例：<code>developers:x:1001:alice,bob,carol</code><br>
+<span class="tip">💡 /etc/passwd（7フィールド）と /etc/group（4フィールド）のフィールド数を覚える</span>`},
+
+{n:42,cat:'user',text:'/etc/passwd のパスワードフィールドで、暗号化されたパスワードが /etc/shadow に保存されていることを示す文字は何ですか。',type:'single',
+opts:['s','*','x','-','#'],
+ans:[2],
+explain:`<span class="point">/etc/passwd と /etc/shadow の連携：</span>
+<code>x</code>：パスワードは /etc/shadow に保存されている ✅<br>
+<code>*</code>：アカウントが無効化されている（ログイン不可）<br>
+<code>!</code>：パスワードがロックされている<br>
+空文字：パスワードなし（セキュリティリスク）<br><br>
+/etc/shadow に移行した理由：<br>
+/etc/passwd は全ユーザーが読み取り可能だが、/etc/shadow は root のみ読み取り可能（セキュリティ向上）<br>
+<span class="tip">💡 x が「シャドウに保存中」のサイン。* はアカウント無効の意味で別物</span>`},
+
+{n:43,cat:'perm',text:'所有ユーザーにrwx、グループにr-x、他のユーザーにアクセス不可のディレクトリにするために必要なumask値はどれですか。',type:'single',
+opts:['0027','7640','0036','0029','0750'],
+ans:[0],
+explain:`<span class="point">umask の計算：</span>
+新規ディレクトリのデフォルト最大パーミッション = 0777<br>
+<code>umask 0027</code> の場合：<br>
+0777 - 0027 = 0750<br>
+<code>rwxr-x---</code>（所有者:rwx グループ:r-x 他:---）✅<br><br>
+計算の仕組み：<br>
+umask の各ビットが「削除する権限」を示す<br>
+0027 = --- --- -w- (グループのwと他の全権限をブロック)<br>
+<span class="warn">⚠️ umask は「与える」ではなく「奪う（マスク）」ので引き算で考える</span>`},
+
+{n:44,cat:'perm',text:'data.txt の所有権を tom に、グループを staff に変更する chown コマンドはどれですか。',type:'single',
+opts:['chown tom+staff data.txt','chown --user tom --group staff data.txt','chown -u tom -g staff data.txt','chown tom:staff data.txt','chown tom/staff data.txt'],
+ans:[3],
+explain:`<span class="point">chown コマンド：</span>
+<code>chown ユーザー:グループ ファイル</code> ✅<br><br>
+例：<code>chown tom:staff data.txt</code><br><br>
+バリエーション：<br>
+<code>chown tom data.txt</code>：所有者のみ変更<br>
+<code>chown :staff data.txt</code>：グループのみ変更<br>
+<code>chown -R tom:staff /dir</code>：ディレクトリ以下を再帰的に変更<br>
+<code>chgrp staff data.txt</code>：グループのみ変更する専用コマンド<br>
+<span class="tip">💡 : コロンで「ユーザー:グループ」を区切る。ドットも使えるが : が標準的</span>`},
+
+{n:45,cat:'perm',text:'一般ユーザーとして chmod 640 filea.txt を実行してもパーミッションが更新されない理由に該当するものはどれですか。（2つ選択）',type:'multi',
+opts:['filea.txt はシンボリックリンクで権限変更不可','スティッキービットが設定されており通常ユーザーはこの権限を削除できない','SUID ビットが設定されており root のみ変更できる','filea.txt は別ユーザーが所有しており一般ユーザーは別ユーザーのファイルを変更できない','filea.txt はハードリンクで権限はターゲットから継承され直接設定できない'],
+ans:[0,3],
+explain:`<span class="point">chmod が失敗する理由：</span><br>
+<b>A) シンボリックリンク</b>：lchmod を使わない限り、シンボリックリンク自体のパーミッションは変更できない（Linuxでは事実上固定）✅<br>
+<b>D) 別ユーザーが所有</b>：ファイルのパーミッション変更は所有者か root のみ可能 ✅<br><br>
+<b>B) スティッキービット</b>：ディレクトリの削除制限であり、chmod 自体を妨げない ❌<br>
+<b>C) SUID ビット</b>：実行ファイルの実行権限に関するもの。chmod 自体を制限しない ❌<br>
+<span class="tip">💡 chmod の原則：所有者か root のみ変更可能</span>`},
+
+{n:46,cat:'perm',text:'/bin/foo に SUID の権限を設定するコマンドはどれですか。',type:'single',
+opts:['chmod 2755 /bin/foo','chmod 755 +s /bin/foo','chmod 1755 /bin/foo','chmod 4755 /bin/foo','chmod us /bin/foo'],
+ans:[3],
+explain:`<span class="point">特殊パーミッションのビット：</span><br>
+<code>4000</code>（4xxx）= SUID（Set User ID）✅<br>
+<code>2000</code>（2xxx）= SGID（Set Group ID）<br>
+<code>1000</code>（1xxx）= スティッキービット<br><br>
+<code>chmod 4755 /bin/foo</code>：SUID + rwxr-xr-x<br>
+ls で見ると：<code>-rwsr-xr-x</code>（所有者のxがsに変わる）<br><br>
+SUID の意味：実行時に所有者の権限で実行される（例：passwd コマンド）<br>
+<span class="warn">⚠️ 2755 は SGID、1755 はスティッキービット。数字を混同しやすい</span>`},
+
+{n:47,cat:'perm',text:'新しいファイルにデフォルトのアクセス許可「-rw-r-----」が確実に適用されるumask値はどれですか。',type:'single',
+opts:['0640','0227','0017','0038','0027'],
+ans:[4],
+explain:`<span class="point">umask とファイルパーミッションの計算：</span>
+新規ファイルのデフォルト最大パーミッション = 0666（実行ビットは含まない）<br>
+目標パーミッション = rw-r----- = 0640<br><br>
+0666 - 0640 = 0026 ← umask で0026を引く<br>
+→ umask 0027 の場合：0666 - 0027 = 0640 ✅<br><br>
+0027の意味：グループのw（2）と他の全権限（7）をブロック<br>
+<span class="tip">💡 ファイルは0666、ディレクトリは0777 が計算の基点</span>`},
+
+{n:48,cat:'proc',text:'System V init ベースのシステムで、init プロセスのプロセス ID（PID）は何ですか。',type:'single',
+opts:['現在の実行レベルに設定されている','再起動するたびに異なる','1','0','-1'],
+ans:[2],
+explain:`<span class="point">init プロセスとPID 1：</span>
+Linuxシステムが起動すると最初に実行されるプロセスが init（またはsystemd）。<br>
+PID = 1 は常にシステムの親プロセス ✅<br><br>
+PID 0：スワッパー（カーネルの仮想プロセス）<br>
+PID 1：init / systemd（すべてのプロセスの祖先）<br>
+PID 2：kthreadd（カーネルスレッド管理）<br><br>
+<code>ps aux | head</code> で確認できる<br>
+<span class="tip">💡 PID 1 = init。絶対に変わらない。この1問は確実に正解すること</span>`},
+
+{n:49,cat:'proc',text:'通常ユーザーが nice コマンドで割り当てられる最大の nice 値はいくつですか。',type:'single',
+opts:['49','19','99','15','9'],
+ans:[1],
+explain:`<span class="point">nice 値の範囲：</span>
+nice 値は -20 〜 +19 の範囲<br>
+値が低いほど優先度が高い（-20 が最高優先度）<br>
+値が高いほど優先度が低い（+19 が最低優先度）<br><br>
+<b>通常ユーザー</b>：0 〜 +19（最大値は +19）✅<br>
+<b>root</b>：-20 〜 +19（マイナス値も設定可能）<br><br>
+<code>nice -n 10 command</code>：nice値10で実行<br>
+<code>renice 5 -p PID</code>：実行中プロセスのnice値を変更<br>
+<span class="warn">⚠️ 通常ユーザーは優先度を「下げる」ことしかできない（値を上げることで優先度を下げる）</span>`},
+
+{n:50,cat:'proc',text:'特定の間隔でコマンドを実行し、プログラムの出力の表示を更新するプログラムは何ですか。（記述式）',type:'input',
+ans:['watch'],
+explain:`<span class="point">watch コマンド：</span>
+<code>watch [オプション] コマンド</code><br><br>
+デフォルトで2秒ごとにコマンドを実行して画面を更新する。<br>
+<code>watch -n 1 free -h</code>：1秒ごとにメモリ状況を更新<br>
+<code>watch -d ls /tmp</code>：変更箇所をハイライト表示<br><br>
+終了：<code>Ctrl+C</code><br>
+<span class="tip">💡 watch はシステム監視に便利。「変化を見たい」ときに使う</span>`},
+
+{n:51,cat:'proc',text:'システムの稼働時間を判断するために使用できるコマンドはどれですか。（2つ選択）',type:'multi',
+opts:['time --up','uptime','uname -u','up','top'],
+ans:[1,4],
+explain:`<span class="point">稼働時間確認コマンド：</span><br>
+<code>uptime</code>：稼働時間・ログインユーザー数・ロードアベレージを表示 ✅<br>
+<code>top</code>：プロセス一覧のヘッダーに稼働時間が表示される ✅<br><br>
+uptime の出力例：<br>
+<code>10:30:00 up 5 days, 2:15, 3 users, load average: 0.10, 0.15, 0.20</code><br><br>
+<code>uname -u</code>：有効なオプションではない（uname はカーネル情報）<br>
+<span class="tip">💡 uptime と top はシステム監視の基本コマンド。どちらも稼働時間が見える</span>`},
+
+{n:52,cat:'proc',text:'特定のnice値で別のコマンドを開始するために使用されるコマンドは何ですか。（記述式）',type:'input',
+ans:['nice'],
+explain:`<span class="point">nice コマンド：</span>
+<code>nice -n [値] コマンド</code>：指定したnice値でコマンドを起動<br><br>
+例：<code>nice -n 10 tar czf backup.tgz /home</code><br>
+（優先度を下げてバックグラウンドでアーカイブ作成）<br><br>
+<code>renice</code>との違い：<br>
+<code>nice</code>：コマンドを起動するとき（起動前）<br>
+<code>renice</code>：すでに動いているプロセスのnice値を変更（起動後）<br>
+<span class="tip">💡 nice = 起動時、renice = 実行中。この違いは問57とセットで覚える</span>`},
+
+{n:53,cat:'proc',text:'root が所有するすべてのプロセスのIDを表示するコマンドはどれですか。（2つ選択）',type:'multi',
+opts:['pgrep -c root','pgrep -f root','pgrep -U 0','pgrep -c 0','pgrep -u root'],
+ans:[2,4],
+explain:`<span class="point">pgrep のオプション：</span><br>
+<code>-u ユーザー名</code>：指定ユーザーのプロセスを検索 ✅<br>
+<code>-U UID</code>：指定UIDのプロセスを検索（root の UID は 0）✅<br>
+<code>-c</code>：件数のみ表示（PIDは表示しない）❌<br>
+<code>-f</code>：コマンドライン全体でマッチング（"root" という名前のプロセスを検索）❌<br><br>
+<code>pgrep -u root</code> と <code>pgrep -U 0</code> は同じroot所有プロセスを検索<br>
+<span class="tip">💡 -u は名前指定、-U は数値UID指定。問5の find -user/-uid と同じパターン</span>`},
+
+{n:54,cat:'proc',text:'Ctrl+Z キーを押したときにプロセスに送信されるシグナルはどれですか。',type:'single',
+opts:['SIGINT','SIGKILL','SIGTERM','SIGCONT','SIGSTOP'],
+ans:[4],
+explain:`<span class="point">主要シグナル一覧：</span><br>
+<code>SIGINT(2)</code>：Ctrl+C → プロセスに割り込み（ハンドル可能）<br>
+<code>SIGTERM(15)</code>：正常終了要求（ハンドル可能）<br>
+<code>SIGKILL(9)</code>：強制終了（ハンドル不可能）<br>
+<code>SIGSTOP(19/17)</code>：プロセスを一時停止（Ctrl+Z）✅<br>
+<code>SIGCONT(18/25)</code>：一時停止を再開<br><br>
+Ctrl+Z → SIGSTOP（一時停止）→ fg で再開、bg でバックグラウンドへ<br>
+Ctrl+C → SIGINT（割り込み・終了）<br>
+<span class="tip">💡 Ctrl+Z=SIGSTOP=止まる、Ctrl+C=SIGINT=割り込み・終了。混同しやすい!</span>`},
+
+{n:55,cat:'proc',text:'nice コマンドを使用してプロセスが開始されたときのデフォルトの nice レベルは何ですか。',type:'single',
+opts:['10','0','15','-10','20'],
+ans:[0],
+explain:`<span class="point">nice コマンドのデフォルト値：</span>
+オプションなしで <code>nice command</code> を実行した場合のデフォルト nice 値は <b>+10</b> ✅<br><br>
+<code>nice command</code> = <code>nice -n 10 command</code> と同じ<br><br>
+なぜ10？：通常プロセス（nice=0）より少し優先度を下げた「バックグラウンドタスク向け」の値として設定されている。<br>
+<span class="warn">⚠️ 問49で「最大値は19」、本問で「デフォルトは10」。数字を混同しないよう注意</span>`},
+
+{n:56,cat:'proc',text:'& 文字で終わるコマンドについての正しい説明はどれですか。',type:'single',
+opts:['コマンドの出力は/dev/nullにリダイレクトされる','コマンドは現在のシェルのバックグラウンドで実行される','コマンドの出力はシェルによって実行される','コマンドは initプロセスの直接の子プロセスとして実行される','コマンドの入力は/dev/nullから読み取られる'],
+ans:[1],
+explain:`<span class="point">バックグラウンド実行 &：</span>
+<code>command &</code>：コマンドをバックグラウンドで実行 ✅<br><br>
+バックグラウンドのジョブ管理：<br>
+<code>jobs</code>：バックグラウンドジョブ一覧<br>
+<code>fg %1</code>：ジョブ番号1をフォアグラウンドへ<br>
+<code>bg %1</code>：停止中のジョブをバックグラウンドで再開<br><br>
+注意：ログアウトするとバックグラウンドジョブも終了する<br>
+→ 終了させたくない場合は <code>nohup command &</code> を使う（問58）<br>
+<span class="tip">💡 & は「シェルから切り離さず」にバックグラウンドで動かす。親プロセスはシェルのまま</span>`},
+
+{n:57,cat:'proc',text:'すでに実行中のプロセスの優先度を変更するコマンドは何ですか。（記述式）',type:'input',
+ans:['renice'],
+explain:`<span class="point">renice コマンド：</span>
+<code>renice [値] -p PID</code>：プロセスIDで指定<br>
+<code>renice [値] -u ユーザー名</code>：ユーザーの全プロセスを変更<br><br>
+例：<code>renice 5 -p 1234</code>（PID 1234 を nice値5に変更）<br><br>
+nice（起動前）vs renice（起動後）の違いは問52に記載。<br>
+通常ユーザーはnice値を上げる（優先度を下げる）ことしかできない。<br>
+<span class="tip">💡 re + nice = 「nice 値を再設定」するコマンド</span>`},
+
+{n:58,cat:'proc',text:'ログアウト後もプログラムを実行し続けるための dbmaint の代替実行方法はどれですか。',type:'single',
+opts:['dbmaint& > /dev/pts/null','job -b dmaint','bg dbmaint','nohup dbmaint&','wait dbmaint'],
+ans:[3],
+explain:`<span class="point">nohup コマンド：</span>
+<code>nohup コマンド &</code>：SIGHUP シグナルを無視してバックグラウンドで実行<br><br>
+ログアウト時にシェルは SIGHUP をすべての子プロセスに送信する。<br>
+nohup は SIGHUP を無視するため、ログアウト後も継続実行される。<br><br>
+出力は nohup.out に保存（stdout と stderr）<br>
+<code>nohup dbmaint > /var/log/dbmaint.log 2>&1 &</code>：出力先を指定<br>
+<span class="tip">💡 nohup = No Hang Up（ハングアップしない）。長時間タスクに必須</span>`},
+
+{n:59,cat:'proc',text:'現在のシェルで実行されているすべてのバックグラウンドタスクのリストを表示するコマンドは何ですか。（記述式）',type:'input',
+ans:['jobs'],
+explain:`<span class="point">jobs コマンド：</span>
+<code>jobs</code>：現在のシェルのバックグラウンドジョブを表示<br><br>
+出力例：<br>
+<code>[1]-  Running    sleep 100 &</code><br>
+<code>[2]+  Stopped    vi file.txt</code><br><br>
+ジョブ番号の操作：<br>
+<code>fg %1</code>：フォアグラウンドへ<br>
+<code>bg %2</code>：バックグラウンドで再開<br>
+<code>kill %1</code>：ジョブ1を終了<br>
+<span class="tip">💡 jobs はシェルのジョブ管理。ps との違い：ps はシステム全体のプロセス</span>`},
+
+{n:60,cat:'user',text:'ユーザーfredが特定のコマンドを実行したとき、どのような出力が表示されますか。（シングルクォートと変数展開の問題）',type:'single',
+opts:["'fred '$USER'","fred /home/fred/","fred fred","fred $USER","'fred fred'"],
+ans:[2],
+explain:`<span class="point">クォートと変数展開のルール：</span><br>
+<code>"$USER"</code>（ダブルクォート）：変数が展開される → fred<br>
+<code>'$USER'</code>（シングルクォート）：変数は展開されない → $USER（文字通り）<br><br>
+問題のコマンドが <code>echo "$USER" "$USER"</code> の場合：<br>
+fred が "fred fred" と出力される ✅<br><br>
+クォートの原則：<br>
+シングル ' ' = すべてリテラル（変数展開・コマンド置換なし）<br>
+ダブル " " = 変数 $ とコマンド \`...\` は展開される<br>
+<span class="tip">💡 クォートの問題は必ず出る。' = そのまま / " = 展開あり を体で覚える</span>`},
+];
+
+let state = {};
+let curCat = 'all';
+
+function resetAll() {
+  state = {};
+  document.querySelectorAll('.inp-ans').forEach(el => el.value = '');
+  renderStats();
+  renderList();
+}
+
+function filterCat(cat, btn) {
+  curCat = cat;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderList();
+}
+
+function getFiltered() {
+  return curCat === 'all' ? QS : QS.filter(q => q.cat === curCat);
+}
+
+function renderStats() {
+  const done = Object.keys(state).length;
+  const ok = Object.values(state).filter(v => v === true).length;
+  const ng = Object.values(state).filter(v => v === false).length;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-ok').textContent = ok;
+  document.getElementById('s-ng').textContent = ng;
+  document.getElementById('prog').style.width = Math.round(done / QS.length * 100) + '%';
+}
+
+function renderList() {
+  const qs = getFiltered();
+  const el = document.getElementById('qlist');
+  el.innerHTML = qs.map(q => buildCard(q)).join('');
+  qs.forEach(q => {
+    if (q.type === 'input') {
+      const inp = document.getElementById('inp-' + q.n);
+      if (inp && state['inp-' + q.n]) inp.value = state['inp-' + q.n];
+    }
+  });
+}
+
+function buildCard(q) {
+  const s = state[q.n];
+  const cls = s === undefined ? 'unanswered' : s ? 'right' : 'wrong';
+  const catCls = 'd-' + q.cat;
+  const multiHint = q.type === 'multi' ? ' <span style="font-size:11px;color:var(--color-text-tertiary)">（複数選択）</span>' : '';
+  
+  let optsHtml = '';
+  if (q.type === 'single' || q.type === 'multi') {
+    const sel = state['sel-' + q.n] || [];
+    const revealed = state['rev-' + q.n] || false;
+    optsHtml = `<div class="opts">` + q.opts.map((o, i) => {
+      let cls2 = '';
+      if (revealed) {
+        if (q.ans.includes(i) && sel.includes(i)) cls2 = 'correct';
+        else if (q.ans.includes(i)) cls2 = 'correct';
+        else if (sel.includes(i)) cls2 = 'wrong-sel';
+      } else {
+        if (sel.includes(i)) cls2 = 'selected';
+      }
+      const mark = revealed ? (q.ans.includes(i) ? '✓' : (sel.includes(i) ? '✗' : '')) : (sel.includes(i) ? '●' : '');
+      return `<div class="opt ${cls2}" onclick="toggleOpt(${q.n},${i},${q.type==='multi'})">
+        <div class="opt-mark">${mark}</div>
+        <span>${o}</span>
+      </div>`;
+    }).join('') + `</div>
+    <button class="check-btn" onclick="checkAns(${q.n})">回答を確認</button>`;
+  } else {
+    const revealed = state['rev-' + q.n] || false;
+    optsHtml = `<input class="inp-ans" id="inp-${q.n}" placeholder="答えを入力してください..." type="text">
+    <button class="check-btn" onclick="checkInputAns(${q.n})">回答を確認</button>`;
+    if (revealed) {
+      const userAns = state['inp-' + q.n] || '';
+      const badge = state[q.n] ? '<span class="result-badge rb-ok">正解</span>' : '<span class="result-badge rb-ng">不正解 — 正解: ' + q.ans[0] + '</span>';
+      optsHtml += badge;
+    }
+  }
+  
+  const explainHtml = (state['rev-' + q.n] && q.explain) ? `<div class="explain"><span class="point">解説</span><br>${q.explain}</div>` : '';
+  
+  return `<div class="qcard ${cls}" id="qcard-${q.n}">
+    <div class="q-head">
+      <span class="q-num ${catCls}">問${q.n}</span>
+      <div class="q-text">${q.text}${multiHint}</div>
+    </div>
+    ${optsHtml}
+    ${explainHtml}
+  </div>`;
+}
+
+function toggleOpt(qn, idx, isMulti) {
+  if (state['rev-' + qn]) return;
+  if (!state['sel-' + qn]) state['sel-' + qn] = [];
+  if (isMulti) {
+    const i = state['sel-' + qn].indexOf(idx);
+    if (i >= 0) state['sel-' + qn].splice(i, 1);
+    else state['sel-' + qn].push(idx);
+  } else {
+    state['sel-' + qn] = [idx];
+  }
+  refreshCard(qn);
+}
+
+function checkAns(qn) {
+  const q = QS.find(x => x.n === qn);
+  if (!q) return;
+  state['rev-' + qn] = true;
+  const sel = state['sel-' + qn] || [];
+  const correct = q.ans.sort().toString() === sel.sort().toString();
+  state[qn] = correct;
+  renderStats();
+  refreshCard(qn);
+}
+
+function checkInputAns(qn) {
+  const q = QS.find(x => x.n === qn);
+  if (!q) return;
+  const val = (document.getElementById('inp-' + qn)?.value || '').trim().toLowerCase();
+  state['inp-' + qn] = val;
+  state['rev-' + qn] = true;
+  const correct = q.ans.map(a => a.toLowerCase()).includes(val);
+  state[qn] = correct;
+  renderStats();
+  refreshCard(qn);
+}
+
+function refreshCard(qn) {
+  const q = QS.find(x => x.n === qn);
+  if (!q) return;
+  const container = document.getElementById('qcard-' + qn);
+  if (!container) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = buildCard(q);
+  const newCard = tmp.firstChild;
+  container.replaceWith(newCard);
+  if (q.type === 'input') {
+    const inp = document.getElementById('inp-' + qn);
+    if (inp && state['inp-' + qn]) inp.value = state['inp-' + qn];
+  }
+}
+
+renderStats();
+renderList();
+</script>

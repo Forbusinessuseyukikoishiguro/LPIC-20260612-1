@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>インタラクティブ模試ツール — ひな型</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #0e0e12;
+  --bg2:       #17181f;
+  --bg3:       #1f2029;
+  --border:    #2a2c38;
+  --border2:   #3a3d50;
+  --text:      #f0eff5;
+  --muted:     #8b8fa8;
+  --green:     #00e57a;
+  --green-bg:  rgba(0,229,122,0.08);
+  --blue:      #5eaaff;
+  --blue-bg:   rgba(94,170,255,0.10);
+  --yellow:    #ffd24d;
+  --yellow-bg: rgba(255,210,77,0.10);
+  --red:       #ff5e5e;
+  --red-bg:    rgba(255,94,94,0.10);
+  --purple:    #b37fff;
+  --purple-bg: rgba(179,127,255,0.10);
+  --radius:    8px;
+  --mono:      'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+
+/* ===== LAYOUT ===== */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ===== TOPBAR ===== */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  min-width: 200px;
+}
+.topbar-title span { color: var(--green); font-family: var(--mono); }
+.tab-group { display: flex; gap: 4px; }
+.tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted);
+  transition: all .15s;
+  font-family: inherit;
+}
+.tab.active { background: var(--green); color: #000; border-color: var(--green); font-weight: 600; }
+.tab:hover:not(.active) { background: var(--bg3); color: var(--text); }
+
+/* ===== PANELS ===== */
+.panel { display: none; flex: 1; padding: 28px 24px; max-width: 1000px; margin: 0 auto; width: 100%; }
+.panel.active { display: block; }
+
+/* ===== SECTION HEADERS ===== */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.section-badge {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid rgba(0,229,122,0.25);
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.section-title { font-size: 20px; font-weight: 700; }
+
+/* ===== FORM ELEMENTS ===== */
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; margin-top: 16px; }
+label:first-child { margin-top: 0; }
+input[type=text], input[type=number], textarea, select {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color .15s;
+  resize: vertical;
+}
+input[type=text]:focus, input[type=number]:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--green);
+}
+textarea { min-height: 90px; }
+select option { background: var(--bg2); }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media(max-width:600px){ .row2,.row3 { grid-template-columns: 1fr; } }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  border: none; transition: all .15s; font-family: inherit;
+}
+.btn-primary { background: var(--green); color: #000; }
+.btn-primary:hover { background: #00c066; }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { background: var(--border2); }
+.btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,94,94,0.25); }
+.btn-danger:hover { background: rgba(255,94,94,0.2); }
+.btn-ai { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(179,127,255,0.3); }
+.btn-ai:hover { background: rgba(179,127,255,0.2); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; align-items: center; }
+
+/* ===== Q LIST (manual side) ===== */
+.q-list { margin-top: 24px; display: flex; flex-direction: column; gap: 12px; }
+.q-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+}
+.q-item-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.q-item-num {
+  background: var(--blue-bg); color: var(--blue);
+  border-radius: 4px; padding: 2px 8px;
+  font-size: 12px; font-family: var(--mono);
+}
+.q-item-type {
+  font-size: 11px; color: var(--muted);
+  border: 1px solid var(--border2); border-radius: 4px;
+  padding: 1px 7px;
+}
+.q-item-text { font-size: 14px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-item-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 16px; padding: 4px;
+  border-radius: 4px; transition: color .15s;
+  flex-shrink: 0;
+}
+.q-item-del:hover { color: var(--red); }
+.q-item-opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt-chip {
+  font-size: 12px; padding: 3px 10px;
+  border-radius: 4px; border: 1px solid var(--border2);
+  color: var(--muted); background: var(--bg3);
+}
+.opt-chip.correct { border-color: rgba(0,229,122,0.4); color: var(--green); background: var(--green-bg); }
+
+/* ===== AI PANEL ===== */
+.ai-config {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.ai-config-title {
+  font-size: 14px; font-weight: 700; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.ai-config-title::before { content: '🤖'; }
+
+.ai-log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  min-height: 80px;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin-top: 16px;
+}
+.ai-log .ok  { color: var(--green); }
+.ai-log .err { color: var(--red); }
+.ai-log .gen { color: var(--blue); }
+
+/* ===== PROGRESS ===== */
+.progress-wrap { margin-bottom: 4px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.progress-bar { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width .3s; }
+
+/* ===== STATS ROW ===== */
+.stats-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 18px; text-align: center; flex: 1; min-width: 100px;
+}
+.stat b { display: block; font-size: 28px; font-family: var(--mono); line-height: 1.1; }
+
+/* ===== QUIZ CARDS ===== */
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.fbtn {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 5px 14px; font-size: 12px;
+  cursor: pointer; color: var(--muted); font-family: inherit;
+  transition: all .15s;
+}
+.fbtn.on { background: var(--blue-bg); border-color: rgba(94,170,255,0.4); color: var(--blue); }
+.fbtn:hover:not(.on) { background: var(--bg3); color: var(--text); }
+
+.qcard {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+}
+.qcard.right  { border-left-color: var(--green); }
+.qcard.wrong  { border-left-color: var(--red); }
+.q-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+.q-num {
+  background: var(--blue-bg); color: var(--blue);
+  border-radius: 5px; padding: 2px 8px; font-size: 12px;
+  font-family: var(--mono); white-space: nowrap; margin-top: 2px;
+}
+.q-text { font-size: 14px; line-height: 1.75; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 12px; border-radius: 6px;
+  border: 1px solid var(--border2); cursor: pointer;
+  font-size: 13px; transition: background .15s;
+}
+.opt:hover { background: var(--bg3); }
+.opt.selected { border-color: rgba(94,170,255,0.5); background: var(--blue-bg); }
+.opt.correct  { border-color: rgba(0,229,122,0.5); background: var(--green-bg); }
+.opt.wrong-sel{ border-color: rgba(255,94,94,0.5);  background: var(--red-bg); }
+.opt-mark {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--border2); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; margin-top: 1px;
+}
+.check-btn {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 7px 16px; font-size: 12px;
+  cursor: pointer; color: var(--muted); margin-top: 10px;
+  font-family: inherit; transition: all .15s;
+}
+.check-btn:hover { background: var(--border2); color: var(--text); }
+.explain {
+  margin-top: 12px; padding: 14px;
+  background: var(--bg3); border-radius: 6px;
+  font-size: 13px; line-height: 1.85; color: var(--muted);
+}
+.explain .point { font-weight: 700; color: var(--text); display: block; margin-bottom: 6px; }
+.explain code {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 1px 6px;
+  font-family: var(--mono); font-size: 12px; color: var(--blue);
+}
+.explain .tip  { color: var(--green);  margin-top: 8px; font-size: 12px; display: block; }
+.explain .warn { color: var(--yellow); margin-top: 8px; font-size: 12px; display: block; }
+.inp-ans {
+  width: 100%; padding: 9px 12px; border-radius: 6px;
+  border: 1px solid var(--border2); font-size: 13px;
+  font-family: var(--mono); background: var(--bg3); color: var(--text);
+  margin-bottom: 8px;
+}
+.inp-ans:focus { outline: none; border-color: var(--green); }
+.result-badge {
+  display: inline-block; padding: 2px 9px;
+  border-radius: 4px; font-size: 12px; font-family: var(--mono);
+}
+.rb-ok { background: var(--green-bg); color: var(--green); }
+.rb-ng { background: var(--red-bg);   color: var(--red);   }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center; padding: 60px 20px; color: var(--muted);
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+.empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; max-width: 340px; margin: 0 auto; }
+
+/* ===== EXPORT ===== */
+.export-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; margin-top: 24px;
+}
+.export-box pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  overflow: auto;
+  max-height: 300px;
+  white-space: pre;
+  margin-top: 12px;
+}
+
+/* ===== TOOLTIP ===== */
+.hint {
+  display: inline-block;
+  width: 16px; height: 16px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 50%; text-align: center; line-height: 15px;
+  font-size: 10px; color: var(--muted); cursor: help; margin-left: 6px;
+}
+
+/* ===== DIVIDER ===== */
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* ===== LOADING SPINNER ===== */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block; width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===== TOPBAR ===== -->
+<div class="topbar">
+  <div class="topbar-title"><span>quiz.</span>template</div>
+  <div class="tab-group">
+    <button class="tab active" onclick="switchTab('manual')">✏️ 手動入力</button>
+    <button class="tab" onclick="switchTab('ai')">🤖 AI生成</button>
+    <button class="tab" onclick="switchTab('play')">▶ 模試プレイ</button>
+    <button class="tab" onclick="switchTab('export')">📤 エクスポート</button>
+  </div>
+</div>
+
+<!-- ================================================================
+     TAB 1: 手動入力
+     ================================================================ -->
+<div class="panel active" id="panel-manual">
+  <div class="section-head">
+    <span class="section-badge">manual</span>
+    <h2 class="section-title">問題を手動で追加</h2>
+  </div>
+
+  <!-- 問題追加フォーム -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+    <div class="row2">
+      <div>
+        <label>カテゴリID <span class="hint" title="英数字。フィルタボタンに使われます">?</span></label>
+        <input type="text" id="m-cat" placeholder="例: cmd / vi / network" />
+      </div>
+      <div>
+        <label>問題形式</label>
+        <select id="m-type" onchange="updateOptUI()">
+          <option value="single">単一選択（1つだけ正解）</option>
+          <option value="multi">複数選択（複数が正解）</option>
+          <option value="input">記述式（テキスト入力）</option>
+        </select>
+      </div>
+    </div>
+
+    <label>問題文</label>
+    <textarea id="m-text" placeholder="問題文を入力してください"></textarea>
+
+    <div id="opts-section">
+      <label>選択肢（1行1つ）<span class="hint" title="記述式の場合は正解キーワードのみ入力">?</span></label>
+      <textarea id="m-opts" placeholder="選択肢A&#10;選択肢B&#10;選択肢C&#10;選択肢D" style="min-height:110px;font-family:var(--mono);font-size:13px;"></textarea>
+
+      <label>正解インデックス（0始まり、カンマ区切り）</label>
+      <input type="text" id="m-ans" placeholder="例: 0 または 0,2（0=1番目の選択肢）" />
+    </div>
+
+    <div id="input-section" style="display:none;">
+      <label>正解キーワード（複数可、カンマ区切り）</label>
+      <input type="text" id="m-input-ans" placeholder="例: updatedb または ls,ls -la" />
+    </div>
+
+    <label>解説（HTML可）</label>
+    <textarea id="m-explain" placeholder="解説を入力してください。&#10;&lt;code&gt;コマンド&lt;/code&gt; や &lt;b&gt;強調&lt;/b&gt; などHTMLタグが使えます。&#10;💡 や ⚠️ で重要ポイントを目立たせましょう。" style="min-height:120px;"></textarea>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="addQuestion()">＋ 問題を追加</button>
+      <button class="btn btn-secondary" onclick="clearForm()">クリア</button>
+    </div>
+  </div>
+
+  <!-- 追加済み問題一覧 -->
+  <div id="q-list-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:28px 0 12px;">
+      <div style="font-size:14px;font-weight:700;">追加済みの問題 <span id="q-count" style="color:var(--muted);font-weight:400;font-size:13px;">（0問）</span></div>
+      <button class="btn btn-danger" onclick="clearAll()" style="font-size:12px;padding:6px 14px;">全削除</button>
+    </div>
+    <div class="q-list" id="q-list-manual"></div>
+  </div>
+</div>
+
+<!-- ================================================================
+     TAB 2: AI生成
+     ================================================================ -->
+<div class="panel" id="panel-ai">
+  <div class="section-head">
+    <span class="section-badge">ai</span>
+    <h2 class="section-title">AIで問題を自動生成</h2>
+  </div>
+
+  <div class="ai-config">
+    <div class="ai-config-title">生成設定</div>
+
+    <div class="row2">
+      <div>
+        <label>試験・分野名</label>
+        <input type="text" id="ai-subject" placeholder="例: LPIC-1 101試験 / AWS SAA / 基本情報技術者" value="LPIC-1 101試験" />
+      </div>
+      <div>
+        <label>カテゴリ（1カテゴリずつ指定）</label>
+        <input type="text" id="ai-cat" placeholder="例: cmd（コマンド基礎）" value="cmd" />
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>カテゴリ表示名</label>
+        <input type="text" id="ai-cat-label" placeholder="例: コマンド基礎" value="コマンド基礎" />
+      </div>
+      <div>
+        <label>生成問題数</label>
+        <input type="number" id="ai-count" value="5" min="1" max="20" />
+      </div>
+    </div>
+
+    <label>トピック・出題範囲（自由記述）</label>
+    <textarea id="ai-topic" placeholder="例: find コマンド / tar コマンド / locate と updatedb / man コマンドのセクション指定">find コマンド、tar コマンド、man コマンド、which / type コマンド</textarea>
+
+    <label>問題形式の比率</label>
+    <div class="row3">
+      <div>
+        <label style="margin-top:0">単一選択（割合）</label>
+        <input type="number" id="ai-ratio-single" value="60" min="0" max="100" />
+      </div>
+      <div>
+        <label style="margin-top:0">複数選択（割合）</label>
+        <input type="number" id="ai-ratio-multi" value="30" min="0" max="100" />
+      </div>
+      <div>
+        <label style="margin-top:0">記述式（割合）</label>
+        <input type="number" id="ai-ratio-input" value="10" min="0" max="100" />
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ai" id="ai-gen-btn" onclick="generateWithAI()">
+        ✨ AIで問題を生成
+      </button>
+      <span style="font-size:12px;color:var(--muted);">生成した問題は模試プレイタブで遊べます</span>
+    </div>
+
+    <div class="ai-log" id="ai-log">// ここに生成ログが表示されます...</div>
+  </div>
+
+  <!-- 生成済みプレビュー -->
+  <div id="ai-preview"></div>
+</div>
+
+<!-- ================================================================
+     TAB 3: 模試プレイ
+     ================================================================ -->
+<div class="panel" id="panel-play">
+  <div class="section-head">
+    <span class="section-badge">play</span>
+    <h2 class="section-title">模試をプレイ</h2>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><b id="s-total" style="color:var(--blue)">0</b><span style="font-size:12px;color:var(--muted)">全問題</span></div>
+    <div class="stat"><b id="s-done" style="color:var(--text)">0</b><span style="font-size:12px;color:var(--muted)">回答済み</span></div>
+    <div class="stat"><b id="s-ok" style="color:var(--green)">0</b><span style="font-size:12px;color:var(--muted)">正解</span></div>
+    <div class="stat"><b id="s-ng" style="color:var(--red)">0</b><span style="font-size:12px;color:var(--muted)">不正解</span></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>進捗</span><span id="prog-label">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="btn-row" style="margin-bottom:16px;">
+    <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="resetPlay()">🔄 最初からやり直す</button>
+  </div>
+
+  <div class="filter-bar" id="play-filters"></div>
+  <div id="play-qlist"></div>
+</div>
+
+<!-- ================================================================
+     TAB 4: エクスポート
+     ================================================================ -->
+<div class="panel" id="panel-export">
+  <div class="section-head">
+    <span class="section-badge">export</span>
+    <h2 class="section-title">ツールをエクスポート</h2>
+  </div>
+
+  <p style="color:var(--muted);font-size:14px;margin-bottom:24px;">
+    作成した問題を元の模試ツール形式のHTML（スタンドアロン）として書き出せます。<br>
+    ファイルをダブルクリックするだけでブラウザで動作します。
+  </p>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="exportHTML()">💾 HTMLファイルとして保存</button>
+    <button class="btn btn-secondary" onclick="copyJSON()">📋 JSONをコピー</button>
+  </div>
+
+  <div class="export-box">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">現在の問題データ（JSON）</div>
+    <div style="font-size:12px;color:var(--muted);">このJSONを保存しておくと、後からこのひな型に読み込めます</div>
+    <pre id="export-json">// 問題を追加するとここに表示されます</pre>
+  </div>
+
+  <hr class="divider">
+
+  <div style="font-size:14px;font-weight:700;margin-bottom:12px;">JSONを読み込む</div>
+  <textarea id="import-json" placeholder='[{"n":1,"cat":"cmd","text":"問題文","type":"single","opts":["A","B"],"ans":[0],"explain":"解説"}]' style="min-height:100px;font-family:var(--mono);font-size:12px;"></textarea>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="importJSON()">📥 JSONを読み込む</button>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+/* ============================================================
+   STATE
+   ============================================================ */
+let QS = [];      // 問題データ
+let playState = {}; // プレイ中の回答状態
+let curCat = 'all';
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'play')   renderPlay();
+  if (name === 'export') renderExport();
+}
+
+/* ============================================================
+   MANUAL INPUT
+   ============================================================ */
+function updateOptUI() {
+  const t = document.getElementById('m-type').value;
+  document.getElementById('opts-section').style.display  = t === 'input' ? 'none' : '';
+  document.getElementById('input-section').style.display = t === 'input' ? '' : 'none';
+}
+
+function addQuestion() {
+  const text = document.getElementById('m-text').value.trim();
+  const cat  = document.getElementById('m-cat').value.trim() || 'misc';
+  const type = document.getElementById('m-type').value;
+  const explain = document.getElementById('m-explain').value.trim();
+
+  if (!text) { alert('問題文を入力してください'); return; }
+
+  let opts = [], ans = [];
+
+  if (type !== 'input') {
+    opts = document.getElementById('m-opts').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    if (opts.length < 2) { alert('選択肢を2つ以上入力してください'); return; }
+    const ansRaw = document.getElementById('m-ans').value.trim();
+    if (!ansRaw) { alert('正解インデックスを入力してください'); return; }
+    ans = ansRaw.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
+    if (ans.length === 0) { alert('正解インデックスを正しく入力してください（例: 0 または 0,2）'); return; }
+    // 範囲チェック
+    if (ans.some(i => i < 0 || i >= opts.length)) {
+      alert(`インデックスが範囲外です（0〜${opts.length-1}）`); return;
+    }
+  } else {
+    const raw = document.getElementById('m-input-ans').value.trim();
+    if (!raw) { alert('正解キーワードを入力してください'); return; }
+    ans = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  }
+
+  const q = {
+    n: QS.length + 1,
+    cat, text, type, opts, ans, explain
+  };
+  QS.push(q);
+  renderManualList();
+  clearForm();
+  log(`問題 ${q.n} を追加しました`);
+}
+
+function clearForm() {
+  ['m-cat','m-text','m-opts','m-ans','m-input-ans','m-explain'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('m-type').value = 'single';
+  updateOptUI();
+}
+
+function deleteQuestion(n) {
+  QS = QS.filter(q => q.n !== n);
+  // 番号振り直し
+  QS.forEach((q, i) => q.n = i + 1);
+  renderManualList();
+}
+
+function clearAll() {
+  if (!QS.length) return;
+  if (!confirm(`全${QS.length}問を削除しますか？`)) return;
+  QS = [];
+  playState = {};
+  renderManualList();
+}
+
+function renderManualList() {
+  const el = document.getElementById('q-list-manual');
+  document.getElementById('q-count').textContent = `（${QS.length}問）`;
+  if (!QS.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="icon">📝</div>
+      <h3>まだ問題がありません</h3>
+      <p>上のフォームから問題を追加してください</p>
+    </div>`;
+    return;
+  }
+  el.innerHTML = QS.map(q => {
+    const typeLabel = {single:'単一',multi:'複数',input:'記述'}[q.type];
+    const optsHtml = q.type !== 'input'
+      ? q.opts.map((o,i)=>`<span class="opt-chip ${q.ans.includes(i)?'correct':''}">${o}</span>`).join('')
+      : q.ans.map(a=>`<span class="opt-chip correct">${a}</span>`).join('');
+    return `<div class="q-item">
+      <div class="q-item-head">
+        <span class="q-item-num">Q${q.n}</span>
+        <span class="q-item-type">${typeLabel}</span>
+        <span class="q-item-type" style="color:var(--green);border-color:rgba(0,229,122,0.3)">${q.cat}</span>
+        <span class="q-item-text">${q.text}</span>
+        <button class="q-item-del" onclick="deleteQuestion(${q.n})" title="削除">✕</button>
+      </div>
+      <div class="q-item-opts">${optsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   AI GENERATION
+   ============================================================ */
+function aiLog(msg, cls='') {
+  const el = document.getElementById('ai-log');
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function generateWithAI() {
+  const subject  = document.getElementById('ai-subject').value.trim();
+  const cat      = document.getElementById('ai-cat').value.trim() || 'misc';
+  const catLabel = document.getElementById('ai-cat-label').value.trim() || cat;
+  const count    = parseInt(document.getElementById('ai-count').value) || 5;
+  const topic    = document.getElementById('ai-topic').value.trim();
+  const rS = parseInt(document.getElementById('ai-ratio-single').value) || 60;
+  const rM = parseInt(document.getElementById('ai-ratio-multi').value)  || 30;
+  const rI = parseInt(document.getElementById('ai-ratio-input').value)  || 10;
+
+  if (!subject) { alert('試験・分野名を入力してください'); return; }
+
+  const btn = document.getElementById('ai-gen-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> 生成中...';
+  document.getElementById('ai-log').innerHTML = '';
+
+  aiLog(`「${subject}」カテゴリ「${catLabel}」で${count}問生成開始...`);
+  aiLog(`トピック: ${topic || '（指定なし）'}`);
+
+  const prompt = `あなたは「${subject}」の試験問題作成の専門家です。
+
+以下の条件で問題を ${count} 問作成してください。
+
+カテゴリ: ${catLabel}（ID: ${cat}）
+トピック: ${topic || subject + 'の基礎'}
+問題形式の比率（目安）: 単一選択 ${rS}% / 複数選択 ${rM}% / 記述式 ${rI}%
+
+【出力形式】
+必ず以下のJSON配列のみを返してください。前置き・解説・マークダウンは不要です。
+配列の各要素は以下の構造にしてください:
+
+{
+  "cat": "${cat}",
+  "text": "問題文（日本語）",
+  "type": "single" | "multi" | "input",
+  "opts": ["選択肢A", "選択肢B", "選択肢C", "選択肢D", "選択肢E"],
+  "ans": [正解インデックスの配列（0始まり）],
+  "explain": "HTMLを含む詳細解説。<code>コマンド</code>タグ、<b>強調</b>タグを使ってください。重要なポイントには 💡 を、注意事項には ⚠️ を付けてください。"
+}
+
+【注意事項】
+- typeが"input"の場合、optsは[]（空配列）、ansは["正解文字列"]の形式
+- typeが"multi"の場合、ansは複数のインデックスを含む配列
+- 選択肢は3〜5個
+- 問題は実際の試験に出題されうるレベルの難易度
+- 解説は丁寧に、なぜ正解なのか・なぜ不正解なのかを明記する
+- JSONのみ返す（\`\`\`json などのコードブロックも不要）`;
+
+  try {
+    aiLog('Anthropic APIにリクエスト送信中...');
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const raw = data.content.map(c => c.text || '').join('');
+
+    aiLog('レスポンス受信。JSONを解析中...', 'gen');
+
+    // JSONブロックの抽出（```json ... ``` や ``` ... ``` に対応）
+    let jsonStr = raw.trim();
+    const match = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (match) jsonStr = match[1].trim();
+
+    let generated;
+    try {
+      generated = JSON.parse(jsonStr);
+    } catch(e) {
+      // 部分的にJSONを抽出する試み
+      const arrMatch = jsonStr.match(/\[[\s\S]*\]/);
+      if (arrMatch) generated = JSON.parse(arrMatch[0]);
+      else throw new Error('JSONの解析に失敗しました: ' + e.message);
+    }
+
+    if (!Array.isArray(generated)) throw new Error('生成結果が配列ではありません');
+
+    aiLog(`${generated.length}問の生成に成功！`, 'ok');
+
+    // QSに追加（番号を連番に）
+    const startN = QS.length + 1;
+    generated.forEach((q, i) => {
+      QS.push({
+        n: startN + i,
+        cat: q.cat || cat,
+        text: q.text,
+        type: q.type || 'single',
+        opts: q.opts || [],
+        ans: q.ans || [0],
+        explain: q.explain || ''
+      });
+    });
+
+    aiLog(`問題を追加しました（現在合計${QS.length}問）`, 'ok');
+    renderManualList();
+    renderAIPreview(generated, catLabel);
+
+  } catch(e) {
+    aiLog(`エラー: ${e.message}`, 'err');
+    aiLog('ネットワーク設定またはAPIキーを確認してください', 'err');
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✨ AIで問題を生成';
+}
+
+function renderAIPreview(qs, catLabel) {
+  const el = document.getElementById('ai-preview');
+  if (!qs.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div style="margin-top:24px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--green)">
+        ✅ 生成された問題プレビュー（${qs.length}問・カテゴリ: ${catLabel}）
+      </div>
+      ${qs.map((q,i)=>`
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Q${i+1} | ${q.type}</div>
+          <div style="font-size:14px;">${q.text}</div>
+          ${q.opts.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
+            ${q.opts.map((o,idx)=>`<span class="opt-chip ${q.ans.includes(idx)?'correct':''}">${o}</span>`).join('')}
+          </div>` : `<div style="margin-top:6px;font-size:12px;color:var(--green);">正解: ${q.ans.join(', ')}</div>`}
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+/* ============================================================
+   PLAY
+   ============================================================ */
+function renderPlay() {
+  const total = QS.length;
+  document.getElementById('s-total').textContent = total;
+  renderPlayStats();
+  renderPlayFilters();
+  renderPlayList();
+}
+
+function renderPlayStats() {
+  const done = Object.keys(playState).filter(k=>!k.startsWith('sel-')&&!k.startsWith('rev-')&&!k.startsWith('inp-')).length;
+  const ok   = Object.values(playState).filter(v=>v===true).length;
+  const ng   = Object.values(playState).filter(v=>v===false).length;
+  const total = QS.length;
+  document.getElementById('s-done').textContent = done;
+  document.getElementById('s-ok').textContent   = ok;
+  document.getElementById('s-ng').textContent   = ng;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = pct + '%';
+}
+
+function resetPlay() {
+  playState = {};
+  renderPlay();
+}
+
+function renderPlayFilters() {
+  if (!QS.length) { document.getElementById('play-filters').innerHTML=''; return; }
+  const cats = [...new Set(QS.map(q=>q.cat))];
+  const catLabels = {cmd:'コマンド基礎',vi:'viエディタ',regex:'正規表現',redir:'リダイレクト',perm:'パーミッション',proc:'プロセス管理',user:'ユーザー管理'};
+  const btns = [
+    `<button class="fbtn ${curCat==='all'?'on':''}" onclick="filterPlay('all',this)">すべて</button>`,
+    ...cats.map(c=>`<button class="fbtn ${curCat===c?'on':''}" onclick="filterPlay('${c}',this)">${catLabels[c]||c}</button>`)
+  ].join('');
+  document.getElementById('play-filters').innerHTML = btns;
+}
+
+function filterPlay(cat, btn) {
+  curCat = cat;
+  document.querySelectorAll('#play-filters .fbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderPlayList();
+}
+
+function renderPlayList() {
+  const el = document.getElementById('play-qlist');
+  if (!QS.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="icon">🎮</div>
+      <h3>問題がありません</h3>
+      <p>「手動入力」または「AI生成」タブから問題を追加してください</p>
+    </div>`;
+    return;
+  }
+  const qs = curCat==='all' ? QS : QS.filter(q=>q.cat===curCat);
+  el.innerHTML = qs.map(q=>buildPlayCard(q)).join('');
+  qs.forEach(q=>{
+    if(q.type==='input'){
+      const inp=document.getElementById('pinp-'+q.n);
+      if(inp&&playState['inp-'+q.n]) inp.value=playState['inp-'+q.n];
+    }
+  });
+}
+
+function buildPlayCard(q) {
+  const s = playState[q.n];
+  const cls = s===undefined?'':'qcard '+(s?'right':'wrong');
+  const multiHint = q.type==='multi' ? ' <span style="font-size:11px;color:var(--muted)">（複数選択）</span>' : '';
+  let inner = '';
+
+  if (q.type==='single'||q.type==='multi') {
+    const sel = playState['sel-'+q.n]||[];
+    const rev = playState['rev-'+q.n]||false;
+    inner = `<div class="opts">`+q.opts.map((o,i)=>{
+      let c2='';
+      if(rev){ c2=q.ans.includes(i)?'correct':(sel.includes(i)?'wrong-sel':''); }
+      else { c2=sel.includes(i)?'selected':''; }
+      const mk=rev?(q.ans.includes(i)?'✓':(sel.includes(i)?'✗':'')):(sel.includes(i)?'●':'');
+      return `<div class="opt ${c2}" onclick="togglePlayOpt(${q.n},${i},${q.type==='multi'})">
+        <div class="opt-mark">${mk}</div><span>${o}</span></div>`;
+    }).join('')+`</div>
+    <button class="check-btn" onclick="checkPlayAns(${q.n})">回答を確認</button>`;
+  } else {
+    const rev=playState['rev-'+q.n]||false;
+    inner=`<input class="inp-ans" id="pinp-${q.n}" placeholder="答えを入力してください..." type="text">
+    <button class="check-btn" onclick="checkPlayInput(${q.n})">回答を確認</button>`;
+    if(rev){
+      const badge=playState[q.n]
+        ?'<span class="result-badge rb-ok">✓ 正解</span>'
+        :`<span class="result-badge rb-ng">✗ 不正解 — 正解: ${q.ans[0]}</span>`;
+      inner+=badge;
+    }
+  }
+
+  const explainHtml=(playState['rev-'+q.n]&&q.explain)
+    ?`<div class="explain"><span class="point">📖 解説</span>${q.explain}</div>`:'' ;
+
+  return `<div class="qcard ${cls}" id="pqcard-${q.n}">
+    <div class="q-head">
+      <span class="q-num">Q${q.n}</span>
+      <div class="q-text">${q.text}${multiHint}</div>
+    </div>
+    ${inner}${explainHtml}
+  </div>`;
+}
+
+function togglePlayOpt(qn,idx,isMulti){
+  if(playState['rev-'+qn])return;
+  if(!playState['sel-'+qn])playState['sel-'+qn]=[];
+  if(isMulti){
+    const i=playState['sel-'+qn].indexOf(idx);
+    if(i>=0)playState['sel-'+qn].splice(i,1);
+    else playState['sel-'+qn].push(idx);
+  } else { playState['sel-'+qn]=[idx]; }
+  refreshPlayCard(qn);
+}
+
+function checkPlayAns(qn){
+  const q=QS.find(x=>x.n===qn); if(!q)return;
+  playState['rev-'+qn]=true;
+  const sel=playState['sel-'+qn]||[];
+  playState[qn]=(q.ans.slice().sort().toString()===sel.slice().sort().toString());
+  renderPlayStats();
+  refreshPlayCard(qn);
+}
+
+function checkPlayInput(qn){
+  const q=QS.find(x=>x.n===qn); if(!q)return;
+  const val=(document.getElementById('pinp-'+qn)?.value||'').trim().toLowerCase();
+  playState['inp-'+qn]=val;
+  playState['rev-'+qn]=true;
+  playState[qn]=q.ans.map(a=>a.toLowerCase()).includes(val);
+  renderPlayStats();
+  refreshPlayCard(qn);
+}
+
+function refreshPlayCard(qn){
+  const q=QS.find(x=>x.n===qn); if(!q)return;
+  const container=document.getElementById('pqcard-'+qn); if(!container)return;
+  const tmp=document.createElement('div');
+  tmp.innerHTML=buildPlayCard(q);
+  container.replaceWith(tmp.firstChild);
+  if(q.type==='input'){
+    const inp=document.getElementById('pinp-'+qn);
+    if(inp&&playState['inp-'+qn]) inp.value=playState['inp-'+qn];
+  }
+}
+
+/* ============================================================
+   EXPORT / IMPORT
+   ============================================================ */
+function renderExport() {
+  const el=document.getElementById('export-json');
+  if(!QS.length){ el.textContent='// 問題を追加するとここに表示されます'; return; }
+  el.textContent=JSON.stringify(QS, null, 2);
+}
+
+function copyJSON(){
+  if(!QS.length){ alert('問題がありません'); return; }
+  navigator.clipboard.writeText(JSON.stringify(QS, null, 2))
+    .then(()=>alert('JSONをクリップボードにコピーしました！'))
+    .catch(()=>{ document.getElementById('export-json').select(); document.execCommand('copy'); });
+}
+
+function importJSON(){
+  const raw=document.getElementById('import-json').value.trim();
+  if(!raw){ alert('JSONを入力してください'); return; }
+  try{
+    const data=JSON.parse(raw);
+    if(!Array.isArray(data)) throw new Error('配列である必要があります');
+    QS=data.map((q,i)=>({...q, n:i+1}));
+    playState={};
+    renderManualList();
+    alert(`${QS.length}問を読み込みました！`);
+    switchTab('play');
+  }catch(e){
+    alert('JSONの解析に失敗しました: '+e.message);
+  }
+}
+
+function exportHTML(){
+  if(!QS.length){ alert('問題がありません'); return; }
+
+  const cats=[...new Set(QS.map(q=>q.cat))];
+  const catLabels={cmd:'コマンド基礎',vi:'viエディタ',regex:'正規表現・grep',redir:'リダイレクト',perm:'パーミッション',proc:'プロセス管理',user:'ユーザー管理'};
+
+  const filterBtns=`
+    <button class="fbtn on" data-cat="all" onclick="filterCat('all',this)">すべて</button>
+    ${cats.map(c=>`<button class="fbtn" data-cat="${c}" onclick="filterCat('${c}',this)">${catLabels[c]||c}</button>`).join('')}
+  `;
+
+  const html=`<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>インタラクティブ模試ツール</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0e0e12;--bg2:#17181f;--bg3:#1f2029;--bd:#2a2c38;--bd2:#3a3d50;--text:#f0eff5;--muted:#8b8fa8;--green:#00e57a;--gbg:rgba(0,229,122,.1);--blue:#5eaaff;--bbg:rgba(94,170,.255,.1);--red:#ff5e5e;--rbg:rgba(255,94,94,.1);}
+body{background:var(--bg);color:var(--text);font-family:sans-serif;font-size:15px;line-height:1.75;padding:20px;}
+.wrap{max-width:860px;margin:0 auto;}
+.title{font-size:20px;font-weight:700;margin-bottom:16px;}
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.stat{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:10px 18px;text-align:center;flex:1;min-width:90px;}
+.stat b{display:block;font-size:26px;font-family:monospace;}
+.progress-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:16px;}
+.progress-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s;}
+.filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.fbtn{background:var(--bg2);border:1px solid var(--bd2);border-radius:6px;padding:5px 14px;font-size:12px;cursor:pointer;color:var(--muted);}
+.fbtn.on{background:rgba(94,170,255,.1);border-color:rgba(94,170,255,.4);color:var(--blue);}
+.qcard{background:var(--bg2);border:1px solid var(--bd);border-left:3px solid var(--bd);border-radius:8px;padding:18px;margin-bottom:12px;}
+.qcard.right{border-left-color:var(--green)}.qcard.wrong{border-left-color:var(--red);}
+.q-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.q-num{background:rgba(94,170,255,.1);color:var(--blue);border-radius:5px;padding:2px 8px;font-size:12px;white-space:nowrap;margin-top:2px;}
+.q-text{font-size:14px;line-height:1.75;}
+.opts{display:flex;flex-direction:column;gap:6px;}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:6px;border:1px solid var(--bd2);cursor:pointer;font-size:13px;}
+.opt:hover{background:var(--bg3)}.opt.selected{border-color:rgba(94,170,255,.5);background:rgba(94,170,255,.1);}
+.opt.correct{border-color:rgba(0,229,122,.5);background:var(--gbg)}.opt.wrong-sel{border-color:rgba(255,94,94,.5);background:var(--rbg);}
+.opt-mark{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--bd2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px;}
+.check-btn{background:var(--bg3);border:1px solid var(--bd2);border-radius:6px;padding:7px 16px;font-size:12px;cursor:pointer;color:var(--muted);margin-top:10px;}
+.explain{margin-top:12px;padding:14px;background:var(--bg3);border-radius:6px;font-size:13px;line-height:1.85;color:var(--muted);}
+.explain .point{font-weight:700;color:var(--text);display:block;margin-bottom:6px;}
+.explain code{background:var(--bg2);border:1px solid var(--bd2);border-radius:4px;padding:1px 6px;font-family:monospace;font-size:12px;color:var(--blue);}
+.explain .tip{color:var(--green);margin-top:8px;font-size:12px;display:block;}
+.explain .warn{color:#ffd24d;margin-top:8px;font-size:12px;display:block;}
+.inp-ans{width:100%;padding:9px 12px;border-radius:6px;border:1px solid var(--bd2);font-size:13px;font-family:monospace;background:var(--bg3);color:var(--text);margin-bottom:8px;}
+.result-badge{display:inline-block;padding:2px 9px;border-radius:4px;font-size:12px;}
+.rb-ok{background:var(--gbg);color:var(--green)}.rb-ng{background:var(--rbg);color:var(--red);}
+.reset-btn{background:var(--bg2);border:1px solid var(--bd2);border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;color:var(--muted);margin-left:auto;}
+</style></head><body>
+<div class="wrap">
+<div style="display:flex;align-items:center;margin-bottom:16px;">
+  <span class="title">インタラクティブ模試（${QS.length}問）</span>
+  <button class="reset-btn" onclick="resetAll()">🔄 最初からやり直す</button>
+</div>
+<div class="stats-row">
+  <div class="stat"><b id="s-total" style="color:var(--blue)">${QS.length}</b>全問題</div>
+  <div class="stat"><b id="s-done">0</b>回答済み</div>
+  <div class="stat"><b id="s-ok" style="color:var(--green)">0</b>正解</div>
+  <div class="stat"><b id="s-ng" style="color:var(--red)">0</b>不正解</div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+<div class="filter-bar">${filterBtns}</div>
+<div id="qlist"></div>
+</div>
+<script>
+const QS=${JSON.stringify(QS)};
+let state={};let curCat='all';
+function resetAll(){state={};document.querySelectorAll('.inp-ans').forEach(el=>el.value='');renderStats();renderList();}
+function filterCat(cat,btn){curCat=cat;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderList();}
+function getFiltered(){return curCat==='all'?QS:QS.filter(q=>q.cat===curCat);}
+function renderStats(){const done=Object.keys(state).filter(k=>!k.startsWith('sel-')&&!k.startsWith('rev-')&&!k.startsWith('inp-')).length;const ok=Object.values(state).filter(v=>v===true).length;const ng=Object.values(state).filter(v=>v===false).length;document.getElementById('s-done').textContent=done;document.getElementById('s-ok').textContent=ok;document.getElementById('s-ng').textContent=ng;document.getElementById('prog').style.width=Math.round(done/QS.length*100)+'%';}
+function renderList(){const qs=getFiltered();document.getElementById('qlist').innerHTML=qs.map(q=>buildCard(q)).join('');qs.forEach(q=>{if(q.type==='input'){const inp=document.getElementById('inp-'+q.n);if(inp&&state['inp-'+q.n])inp.value=state['inp-'+q.n];}});}
+function buildCard(q){const s=state[q.n];const cls=s===undefined?'':(s?'right':'wrong');const mh=q.type==='multi'?' <span style="font-size:11px;color:var(--muted)">（複数選択）</span>':'';let inner='';if(q.type==='single'||q.type==='multi'){const sel=state['sel-'+q.n]||[];const rev=state['rev-'+q.n]||false;inner='<div class="opts">'+q.opts.map((o,i)=>{let c2='';if(rev){c2=q.ans.includes(i)?'correct':(sel.includes(i)?'wrong-sel':'');}else{c2=sel.includes(i)?'selected':'';}const mk=rev?(q.ans.includes(i)?'✓':(sel.includes(i)?'✗':'')):(sel.includes(i)?'●':'');return \`<div class="opt \${c2}" onclick="toggleOpt(\${q.n},\${i},\${q.type==='multi'})"><div class="opt-mark">\${mk}</div><span>\${o}</span></div>\`;}).join('')+'</div><button class="check-btn" onclick="checkAns('+q.n+')">回答を確認</button>';}else{const rev=state['rev-'+q.n]||false;inner=\`<input class="inp-ans" id="inp-\${q.n}" placeholder="答えを入力..." type="text"><button class="check-btn" onclick="checkInput(\${q.n})">回答を確認</button>\`;if(rev){inner+=state[q.n]?'<span class="result-badge rb-ok">✓ 正解</span>':\`<span class="result-badge rb-ng">✗ 不正解 — 正解: \${q.ans[0]}</span>\`;}}const exp=(state['rev-'+q.n]&&q.explain)?\`<div class="explain"><span class="point">📖 解説</span>\${q.explain}</div>\`:'';return \`<div class="qcard \${cls}" id="qcard-\${q.n}"><div class="q-head"><span class="q-num">Q\${q.n}</span><div class="q-text">\${q.text}\${mh}</div></div>\${inner}\${exp}</div>\`;}
+function toggleOpt(qn,idx,isMulti){if(state['rev-'+qn])return;if(!state['sel-'+qn])state['sel-'+qn]=[];if(isMulti){const i=state['sel-'+qn].indexOf(idx);if(i>=0)state['sel-'+qn].splice(i,1);else state['sel-'+qn].push(idx);}else{state['sel-'+qn]=[idx];}refreshCard(qn);}
+function checkAns(qn){const q=QS.find(x=>x.n===qn);if(!q)return;state['rev-'+qn]=true;const sel=state['sel-'+qn]||[];state[qn]=(q.ans.slice().sort().toString()===sel.slice().sort().toString());renderStats();refreshCard(qn);}
+function checkInput(qn){const q=QS.find(x=>x.n===qn);if(!q)return;const val=(document.getElementById('inp-'+qn)?.value||'').trim().toLowerCase();state['inp-'+qn]=val;state['rev-'+qn]=true;state[qn]=q.ans.map(a=>a.toLowerCase()).includes(val);renderStats();refreshCard(qn);}
+function refreshCard(qn){const q=QS.find(x=>x.n===qn);if(!q)return;const c=document.getElementById('qcard-'+qn);if(!c)return;const tmp=document.createElement('div');tmp.innerHTML=buildCard(q);c.replaceWith(tmp.firstChild);if(q.type==='input'){const inp=document.getElementById('inp-'+qn);if(inp&&state['inp-'+qn])inp.value=state['inp-'+qn];}}
+renderStats();renderList();
+<\/script></body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`quiz_tool_${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  log('HTMLファイルをエクスポートしました');
+}
+
+function log(msg){ console.log('[quiz-template]', msg); }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderManualList();
+</script>
+</body>
+</html>
